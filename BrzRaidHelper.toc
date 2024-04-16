@@ -1,5 +1,5 @@
 ## Interface: 11200
-## Title: BlastRaidHelper
+## Title: |cFFFF8080Brz|rRaidHelper
 ## Version: 150
 ## Notes: Multiple Useful Macros for Raids
 ## SavedVariablesPerCharacter: BRH_TrackedSpells, BRH_CDTrackerConfig, BRH_spellsToTrack, BRH_SpellCastCount, BRH_config
