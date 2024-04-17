@@ -38,16 +38,18 @@ scd.frame = CreateFrame("Frame", "BRH_SapperCountDown")
 scd.frame:RegisterEvent("CHAT_MSG_ADDON");
 
 scd.frame:SetScript("OnEvent", function() 
-    local sender = arg4
-    local data = util.strsplit(";;;", arg2)
-	local cmd = data[1]
-	local datas = data[2]
+	scd.HandleAddonMSG(arg4, arg2)
+end)
+
+function scd.HandleAddonMSG(sender, data)
+	local split = util.strsplit(";;;", data)
+	local cmd = split[1]
+	local datas = split[2]
 
     if (cmd == "start" and util.PlayerIsPromoted(sender)) then
         scd.doStartCountdown(datas);
     end
-
-end)
+end
 
 scd.frame:SetScript("OnUpdate", function() 
     if (scd.startCountDown) then
@@ -127,18 +129,23 @@ function plsInfu.infuIfCan(msg)
 	end
 end
 
-plsInfu.frame = CreateFrame("Frame", "BRH_plsInfu")
-plsInfu.frame:RegisterEvent("CHAT_MSG_ADDON");
-plsInfu.frame:SetScript("OnEvent", function() 
-    local sender = arg4
-    local data = util.strsplit(";;;", arg2)
-	local cmd = data[1]
-	local datas = data[2]
+function plsInfu.HandleAddonMSG(sender, data)
+	local split = util.strsplit(";;;", data)
+	local cmd = split[1]
+	local datas = split[2]
 
     if (cmd == "plsInfu" and datas == UnitName("Player")) then
         plsInfu.askedInfu = sender
         util.print(sender.." a demandé une infu !");
     end
+end
+
+plsInfu.frame = CreateFrame("Frame", "BRH_plsInfu")
+plsInfu.frame:RegisterEvent("CHAT_MSG_ADDON");
+plsInfu.frame:SetScript("OnEvent", function() 
+    local sender = arg4
+    local data = util.strsplit(";;;", arg2)
+	plsInfu.HandleAddonMSG(arg4, arg2)
 end)
 
 SlashCmdList["PLSINFU"] = plsInfu.Handle
@@ -177,19 +184,24 @@ function plsbop.BOPIfCan(msg)
 	end
 end
 
-plsbop.frame = CreateFrame("Frame", "BRH_plsBOP")
-plsbop.frame:RegisterEvent("CHAT_MSG_ADDON");
-plsbop.frame:SetScript("OnEvent", function() 
-    local sender = arg4
-    local data = util.strsplit(";;;", arg2)
-	local cmd = data[1]
-	local datas = data[2]
+function plsbop.HandleAddonMSG(sender, data)
+	local split = util.strsplit(";;;", data)
+	local cmd = split[1]
+	local datas = split[2]
 
     if (cmd == "plsBOP" and datas == UnitName("Player")) then
         askedBOP = sender
         util.print(sender.." a demandé une BOP !")
     end
 
+end
+
+plsbop.frame = CreateFrame("Frame", "BRH_plsBOP")
+plsbop.frame:RegisterEvent("CHAT_MSG_ADDON");
+plsbop.frame:SetScript("OnEvent", function() 
+    local sender = arg4
+    local data = util.strsplit(";;;", arg2)
+ 	plsbop.HandleAddonMSG(arg4, arg2)
 end)
 
 SlashCmdList["PLSBOP"] = plsbop.Handle
