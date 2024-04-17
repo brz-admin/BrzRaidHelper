@@ -6,6 +6,10 @@ local util = BRH.util
 
 -- Print to chat frame, used for  debug mostly
 function util.print(msg)
+	if (msg == nil) then 
+		DEFAULT_CHAT_FRAME:AddMessage("BRH: Print Argumenet is nil.", 0.5, 1, 1)
+		return
+	end
 	DEFAULT_CHAT_FRAME:AddMessage("BRH: "..msg, 0.50,0.5,1)
 end
 
@@ -310,3 +314,44 @@ function util.regAddons()
 	end
 end
 
+
+----- Getting names from interface -----
+
+util.BRH_ToolTipFrame = CreateFrame("GameTooltip", "BRH_ToolTipFrame", nil, "GameTooltipTemplate");
+util.BRH_ToolTipFrame:SetOwner(UIParent, 'ANCHOR_NONE')
+
+function util.getPlayerAuraName(idx)
+	util.BRH_ToolTipFrame:ClearLines()
+	util.BRH_ToolTipFrame:SetPlayerBuff(buffIndex)
+	return BRH_ToolTipFrameTextLeft1:GetText(), BRH_ToolTipFrameTextLeft3:GetText()
+end
+
+function util.getUnitBuffName(unitId, idx)
+	util.BRH_ToolTipFrame:ClearLines()
+	util.BRH_ToolTipFrame:SetUnitBuff(unitId, idx)
+	return BRH_ToolTipFrameTextLeft1:GetText(), BRH_ToolTipFrameTextLeft3:GetText()
+end
+
+function util.getUnitDebuffName(unitId, idx)
+	util.BRH_ToolTipFrame:ClearLines()
+	util.BRH_ToolTipFrame:SetUnitDebuff(unitId, idx)
+	return BRH_ToolTipFrameTextLeft1:GetText(), BRH_ToolTipFrameTextLeft3:GetText()
+end
+
+function util.getUnitItemName(unitId, slot)
+	util.BRH_ToolTipFrame:ClearLines()
+	util.BRH_ToolTipFrame:SetInventoryItem(unitId, slot, true)
+	return BRH_ToolTipFrameTextLeft1:GetText()
+end
+
+function util.getBagItemName(bag, slot)
+	util.BRH_ToolTipFrame:ClearLines()
+	util.BRH_ToolTipFrame:SetBagItem(bag, slot)
+	return BRH_ToolTipFrameTextLeft1:GetText()
+end
+
+function util.getActionName(actionindex)
+	util.BRH_ToolTipFrame:ClearLines()
+	util.BRH_ToolTipFrame:SetAction(actionindex)
+	return BRH_ToolTipFrameTextLeft1:GetText()
+end
