@@ -4,47 +4,46 @@ BRH.cdTracker = {}
 local tracker = BRH.cdTracker
 local util = BRH.util
 
-function BRH.trackSpell(class, icon, name)
+function tracker.trackSpell(icon, name)
 
-	class = strlow(class)
-	if (BRH_spellsToTrack[class] == nil) then
-		BRH_spellsToTrack[class] = {}
+
+	if (BRH_spellsToTrack == nil) then
+		BRH_spellsToTrack = {}
 	end
 
 	name = strlow(name);
-	if (BRH_spellsToTrack[class][name] == nil) then
-		BRH_spellsToTrack[class][name] = {
+	if (BRH_spellsToTrack[name] == nil) then
+		BRH_spellsToTrack[name] = {
 			["icon"] = icon,
 			["tracked"] = true, -- If the player using the addon track it ?
 			["onCD"] = {}, -- players in cd fromated [playerName] = time when it's up or false.
 			["CD"] = 0
 		}
 	end
+	BRH_spellsToTrack[name].tracked = true;
 
-	BRH_spellsToTrack[class][name].tracked = true;
-
-	BRH.buildTrackedSpellsGUI()
+	tracker.buildTrackedSpellsGUI()
 end
 
-function BRH.unTrackSpell(class, icon, name)
-	class = strlow(class)
-	if (BRH_spellsToTrack[class] == nil) then
-		BRH_spellsToTrack[class] = {}
+function tracker.unTrackSpell(icon, name)
+
+	if (BRH_spellsToTrack == nil) then
+		BRH_spellsToTrack = {}
 	end
 
-	icon = strlow(icon);
-	if (BRH_spellsToTrack[class][icon] == nil) then
-		BRH_spellsToTrack[class][icon] = {
+	name = strlow(icon);
+	if (BRH_spellsToTrack[name] == nil) then
+		BRH_spellsToTrack[name] = {
 			["tracked"] = true, -- If the player using the addon track it ?
 			["onCD"] = {}, -- players in cd fromated [playerName] = time when it's up or false.
 		}
 	end
-	BRH_spellsToTrack[class][icon].tracked = false;
+	BRH_spellsToTrack[name].tracked = false;
 
-	BRH.buildTrackedSpellsGUI()
+	tracker.buildTrackedSpellsGUI()
 end
 
-
+------ GUI STUFF ------
 BRH_CDTracker = {}
 BRH_CDTracker.main = CreateFrame("Frame", "BRH_CDTracker_main")
 --BRH_CDTracker.main:ClearAllPoints();
@@ -55,14 +54,14 @@ BRH_CDTracker.main:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Backgrou
 BRH_CDTracker.main:SetBackdropColor(0,0,0,0.5);
 BRH_CDTracker.main:RegisterEvent("RAID_ROSTER_UPDATE")
 BRH_CDTracker.main:RegisterEvent("ADDON_LOADED")
-BRH_CDTracker.main:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_PARTY_BUFFS");
-BRH_CDTracker.main:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_PARTY_DAMAGE");
+BRH_CDTracker.main:RegisterEvent("CHAT_MSG_ADDON")
 BRH_CDTracker.main:SetMovable(true);
 BRH_CDTracker.main:EnableMouse(true);
 BRH_CDTracker.main:RegisterForDrag("LeftButton");
 BRH_CDTracker.main:SetScript("OnDragStart", function() this:StartMoving() end);
 BRH_CDTracker.main:SetScript("OnDragStop", function() this:StopMovingOrSizing() end);
-function BRH.buildTrackedSpellsGUI()
+
+function tracker.buildTrackedSpellsGUI()
 	local precedentFrame = nil;
 	for class, spells in pairs(BRH_spellsToTrack) do
 		for spell, datas in pairs(spells) do
@@ -116,18 +115,10 @@ function BRH.buildTrackedSpellsGUI()
 			end
 		end
 	end
-	BRH.updateGUI();
+	tracker.updateGUI();
 end
 
-function BRH.getTrackedSpellsInRaid()
-	-- not in raid, nothing to do here
-	if (not UnitInRaid("Player")) then
-		return
-	end
-	util.addonCom("getTrackedSpells", "")
-end
-
-function BRH.updateGUI()
+function tracker.updateGUI()
 
 	if (BRH_CDTrackerConfig) then
 		if (BRH_CDTrackerConfig.show and UnitInRaid("Player")) then
@@ -181,7 +172,7 @@ function BRH.updateGUI()
 							BRH_CDTracker[spell].playersFrames[player].cdBG:SetWidth(0)
 							up = up+1 
 						elseif (cd ~= "-1" and cd <= GetTime()) then 
-							BRH_spellsToTrack[class][spell].onCD[player] = false;
+							BRH_spellsToTrack[spell].onCD[player] = false;
 							BRH_CDTracker[spell].playersFrames[player].cd:SetText("Up !");
 							BRH_CDTracker[spell].playersFrames[player].cdBG:SetWidth(0)
 							up = up+1 
@@ -205,139 +196,29 @@ function BRH.updateGUI()
 		end
 	end
 end
---[[
-function BRH.getMyTrackedSpells()
-	local playerName = UnitName("player")
 
-	-- check action bars
-	for actionindex = 1, 120 do
-		-- avoid macros
-		if (GetActionText(actionindex) == nil and GetActionTexture(actionindex) ~= nil and IsConsumableAction(actionindex)) then 
-			-- Check for CD
-			local _, cd = GetActionCooldown(actionindex)
-			local icon = strlow(GetActionTexture(actionindex));
 
-			if (cd and cd > 0) then
-				BRH.setTrackedSpellOnCD("all", playerName, icon, cd);
-				spellOnCDCheck.item[icon] = false;
-			else
-				BRH.setTrackedSpellUp("all", playerName, icon);
-			end
-		end
+function tracker.getTrackedSpellsInRaid()
+	-- not in raid, nothing to do here
+	if (not UnitInRaid("Player")) then
+		return
 	end
-
-	-- bag items 
-	for bag=0,4 do
-		for slot=1,GetContainerNumSlots(bag) do
-			if (GetContainerItemLink(bag,slot)) then
-				local _, cd = GetContainerItemCooldown(bag, slot)
-				local icon = GetContainerItemInfo(bag, slot);
-				
-				if (cd and cd > 0) then
-					BRH.setTrackedSpellOnCD("all", playerName, icon, cd);
-					spellOnCDCheck.item[icon] = false;
-				else
-					BRH.setTrackedSpellUp("all", playerName, icon);
-				end
-			end
-		end
-	end
-
-	-- Inventory Items
-	for slotId = 0, 19 do
-		local icon = GetInventoryItemTexture("Player", slotId)
-		if (icon) then
-			local _, cd = GetInventoryItemCooldown("Player", slotId)
-			if (cd and cd > 0) then
-				BRH.setTrackedSpellOnCD("all", playerName, icon, cd);
-				spellOnCDCheck.item[icon] = false;
-			else
-				BRH.setTrackedSpellUp("all", playerName, icon);
-			end
-		end
-	end
-
-	-- check spells
-	local _, myclass = UnitClass("player")
-	myclass = strlow(myclass);
-
-	-- getting total number of spells
-	local numspells = 0;
-	for i = 1, GetNumSpellTabs() do
-		_, _, _, temp = GetSpellTabInfo(i)
-		numspells = numspells + temp
-	end
-	
-	for i = 1, numspells do
-		local icon = strlow(GetSpellTexture(i, BOOKTYPE_SPELL))
-		local cd = util.getSpellCDByIcon(icon)
-
-		if (cd and cd > 0) then
-			BRH.setTrackedSpellOnCD(myclass, playerName, icon, cd);
-			spellOnCDCheck.spell[icon] = false;
-		else
-			BRH.setTrackedSpellUp(myclass, playerName, icon);
-		end
-	end
+	util.addonCom("getTrackedSpells", "")
 end
 
-function BRH.setTrackedSpellOnCD(class, sender, spell, duration)
+function tracker.setTrackedSpellOnCD(sender, spell, time)
 	spell = strlow(spell);
 
 	local sentBySelf = strlow(UnitName("Player")) == strlow(sender);
-	local type = "spell";
-	if (class == "all") then
-		type = "item"
+
+	if (BRH_spellsToTrack ~= nil and BRH_spellsToTrack[spell] ~= nil) then
+		BRH_spellsToTrack[spell]["onCD"][sender] = time;
 	end
 
-	if (BRH_spellsToTrack[class] ~= nil and BRH_spellsToTrack[class][spell] ~= nil) then
-		if duration == "-1" then
-			BRH_spellsToTrack[class][spell]["onCD"][sender] = duration;
-		elseif (BRH_spellsToTrack[class][spell]["onCD"][sender] == "-1") then
-			BRH_spellsToTrack[class][spell]["onCD"][sender] = GetTime() + duration;
-		end
+	-- if self we can just send it
+	if (sentBySelf) then
+		util.addonCom("trackedSpellUsed", spell..":"..duration)
 	end
-
-	if BRH_SpellCastCount[sender] == nil then
-		BRH_SpellCastCount[sender] = {}
-	end
-
-	if (BRH_SpellCastCount[sender][spell] == nil) then
-		BRH_SpellCastCount[sender][spell] = 1
-	else
-		BRH_SpellCastCount[sender][spell] = BRH_SpellCastCount[sender][spell] + 1
-	end
-	
-	if (sentBySelf and duration == "-1" and not spellOnCDCheck[type][spell]) then
-		spellOnCDCheck[type][spell] = true;
-		BRH_CDTracker.nextTick = GetTime() + BRH_CDTracker.tickRate;
-		util.addonCom("trackedSpellUsed", class..":"..spell..":"..duration)
-	elseif (sentBySelf and spellOnCDCheck[type][spell] and duration ~= "-1") then
-		spellOnCDCheck[type][spell] = false;
-		util.addonCom("trackedSpellUsed", class..":"..spell..":"..duration)
-	end
-
-end
-
-function BRH.setTrackedSpellUp(class, sender, spell)
-	spell = strlow(spell);
-
-	if (strlow(UnitName("Player")) == strlow(sender)) then
-		util.addonCom("trackedSpellUp", class..":"..spell);
-	end
-
-	if (BRH_spellsToTrack[class] == nil) then
-		return
-	end
-
-	if (BRH_spellsToTrack[class][spell] == nil) then
-		if (BRH_spellsToTrack["all"][spell] ~= nil) then
-			BRH_spellsToTrack["all"][spell]["onCD"][sender] = false;
-		end
-		return
-	end
-
-	BRH_spellsToTrack[class][spell]["onCD"][sender] = false;
 end
 
 local function handleTrackedSpellUsed(sender, datas)
@@ -347,60 +228,15 @@ local function handleTrackedSpellUsed(sender, datas)
 	end
 
 	local split = util.strsplit(":", datas)
-	local senderClass = split[1];
-	local spell = split[2];
-	local duration = split[3];
-	BRH.setTrackedSpellOnCD(senderClass, sender, spell, duration);
+	local spell = split[1];
+	local duration = split[2];
+	tracker.setTrackedSpellOnCD(sender, spell, duration);
 end
 
-local function handleTrackedSpellUp(sender, datas)
-	-- we don't wanna get our own updates as we already handled them
-	if (strlow(sender) == UnitName("Player")) then
-		return
-	end
-
-	local split = util.strsplit(":", datas)
-	local senderClass = split[1];
-	local spell = split[2];
-
-	BRH.setTrackedSpellUp(senderClass, sender, spell);
-end
-]]
-function BRH.updateSpellsOnCD()
-
-	for spell, doCheck in pairs(spellOnCDCheck.spell) do
-		local playerName = UnitName("player")
-		local _, myclass = UnitClass("player")
-		myclass = strlow(myclass);
-		local cd = util.getSpellCDByIcon(spell)
-
-		if (cd and cd > 0) then
-			BRH.setTrackedSpellOnCD(myclass, playerName, spell, cd);
-		else
-			BRH.setTrackedSpellUp(myclass, playerName, spell);
-		end
-	end
-
-	for spell, doCheck in pairs(spellOnCDCheck.item) do
-		for actionindex = 1, 120 do
-			-- avoid macros and check if it's our item
-			if (GetActionText(actionindex) == nil and GetActionTexture(actionindex) and IsConsumableAction(actionindex) and strlow(GetActionTexture(actionindex)) == spell) then 
-				_, cd = GetActionCooldown(actionindex)
-
-				if (cd and cd > 0) then
-					BRH.setTrackedSpellOnCD("all", playerName, spell, cd);
-				else
-					BRH.setTrackedSpellUp("all", playerName, spell);
-				end
-			end
-		end
-	end
-
-end
 --[[
 This code hooks UseAction
 ]]
---[[
+
 savedUseAction = UseAction
 
 newUseAction = function(actionindex, x, y)
@@ -426,25 +262,44 @@ newUseAction = function(actionindex, x, y)
 		return;
 	end
 
-	local actionTexture = GetActionTexture(actionindex);
-	if (actionTexture) then
-		local playerName = UnitName("Player")
-		local _, myclass = UnitClass("player")
-		myclass = strlow(myclass);
-		-- if it has count is a
-		if (IsConsumableAction(actionindex)) then myclass = "all" end;
-		BRH.setTrackedSpellOnCD(myclass, playerName, actionTexture, "-1");
+	local actionName = 	util.getActionName(actionindex);
+	if (actionName) then
+		tracker.setActionCheck(actionindex);
 	end
 
    savedUseAction(actionindex, x, y)   
 
 end
 UseAction = newUseAction
-]]
+
+tracker.actionsToCheck = {}
+tracker.doCheckActions = false;
+
+function tracker.setActionCheck(actionindex)
+	tracker.actionsToCheck[actionindex] = true;
+	-- set to true anywau so we know we have actions to check
+	tracker.doCheckActions = true
+end
+
+function tracker.checkActions()
+	-- no action to check
+	if not tracker.doCheckActions then return end
+
+	for actionIdx, doCheck in pairs(tracker.actionsToCheck) do
+		if (doCheck) then
+			local start, cd, enable = GetActionCooldown(actionIdx);
+			if (enable) then
+				local aName = util.getActionName(actionIdx);
+				local time = start + cd
+				tracker.setTrackedSpellOnCD(UnitName("player"), aName, time)
+			end
+		end
+	end
+end
+
 --[[
 This code hooks CastSpellByName()
 ]]
---[[
 savedCastSpellByName = CastSpellByName
 newCastSpellByName = function(name, onself)
 
@@ -465,51 +320,88 @@ newCastSpellByName = function(name, onself)
 		return;
 	end
 
-	local spellTexture = strlow(GetSpellTexture(spellSlot, BOOKTYPE_SPELL));
-	if (spellTexture) then
-		-- ok so, is usable, have enough mana, is in range. It's pretty sure we are gonna be able to use it. Only server can say no then but we are not gonna check that
-		local playerName = UnitName("Player")
-		local _, myclass = UnitClass("player")
-		myclass = strlow(myclass);
-		BRH.setTrackedSpellOnCD(myclass, playerName, spellTexture, "-1");
-	end
+	tracker.setSpellCheck(spellSlot);
 	
     -- Call the original function then
 	savedCastSpellByName(name, onself)
 end
 CastSpellByName = newCastSpellByName
-]]
+
+tracker.spellsToCheck = {}
+tracker.doCheckSpells = false;
+
+function tracker.setSpellCheck(spellSlot)
+	tracker.spellsToCheck[spellSlot] = true;
+	-- set to true anywau so we know we have actions to check
+	tracker.doCheckSpells = true
+end
+
+function tracker.checkSpells()
+	-- no action to check
+	if not tracker.doCheckSpells then return end
+
+	for spellSlot, doCheck in pairs(tracker.spellsToCheck) do
+		if (doCheck) then
+			local start, cd, enable = GetSpellCooldown(slot, BOOKTYPE_SPELL);
+			if (enable) then
+				local sName = GetSpellName(lot, BOOKTYPE_SPELL);
+				local time = start + cd
+				tracker.setTrackedSpellOnCD(UnitName("player"), sName, time)
+			end
+		end
+	end
+end
+
 --[[
 This code hooks UseInventoryItem()
 ]]
---[[
 savedUseInventoryItem = UseInventoryItem
-newUseInventoryItem = function(unit, slot)
-
+newUseInventoryItem = function(slot)
 	-- Check for CD
-	local _, duration = GetInventoryItemCooldown(unit, slot)
+	local _, duration = GetInventoryItemCooldown("player", slot)
 	if (duration > 0) then
 		-- action is on CD so ...
-		savedUseInventoryItem(unit, slot)   
+		savedUseInventoryItem(slot)   
 		return;
 	end
 
-	local texture = GetInventoryItemTexture(unit, slot);
-	if (texture) then
-		local playerName = UnitName("Player");
-		local myclass = "all";
-		BRH.setTrackedSpellOnCD(myclass, playerName, texture, "-1");
+	local ivItemName = util.getUnitItemName("player", slot)
+	if (ivItemName) then
+		tracker.setIventItemCheck(slot)
 	end
 
-	savedUseInventoryItem(unit, slot) 
-
+	savedUseInventoryItem(slot)
 end
 UseInventoryItem = newUseInventoryItem
-]]
+
+tracker.inventItemToCheck = {}
+tracker.doCheckInventItem = false;
+
+function tracker.setIventItemCheck(slot)
+	tracker.inventItemToCheck[slot] = true;
+	-- set to true anywau so we know we have actions to check
+	tracker.doCheckInventItem = true
+end
+
+function tracker.checkIventItems()
+	-- no action to check
+	if not tracker.doCheckInventItem then return end
+
+	for slot, doCheck in pairs(tracker.inventItemToCheck) do
+		if (doCheck) then
+			local start, cd, enable = GetInventoryItemCooldown("player", slot);
+			if (enable) then
+				local aName = util.getActionName(actionIdx);
+				local time = start + cd
+				tracker.setTrackedSpellOnCD(UnitName("player"), aName, time)
+			end
+		end
+	end
+end
+
 --[[GetContainerItemCooldown
 This code hooks UseContainerItem()
 ]]
---[[
 savedUseContainerItem = UseContainerItem
 newUseContainerItem = function(bag, slot, onSelf)
 
@@ -521,27 +413,53 @@ newUseContainerItem = function(bag, slot, onSelf)
 			return;
 		end
 	
-		local texture = GetContainerItemInfo(bag, slot);
-		if (texture) then
-			local playerName = UnitName("Player");
-			local myclass = "all";
-			BRH.setTrackedSpellOnCD(myclass, playerName, texture, "-1");
+		local name = util.getBagItemName(bag, slot)
+		if (name) then
+			tracker.setContainItemCheck(bag.."."..slot)
 		end
 	
 		savedUseContainerItem(bag, slot, onSelf) 
 
 end
 UseContainerItem = newUseContainerItem
-]]
+
+tracker.containItemToCheck = {}
+tracker.doCheckContainItem = false;
+
+function tracker.setContainItemCheck(slot)
+	tracker.containItemToCheck[slot] = true;
+	-- set to true anywau so we know we have actions to check
+	tracker.doCheckContainItem = true
+end
+
+function tracker.checkContainItem()
+	-- no action to check
+	if not tracker.doCheckContainItem then return end
+
+	for slotStr, doCheck in pairs(tracker.containItemToCheck) do
+		if (doCheck) then
+			local split = util.strsplit(".", slotStr)
+			local bag = split[1]
+			local slot = split[2]
+			local start, cd, enable = GetContainerItemCooldown(bag, slot)
+			if (enable) then
+				local aName = getBagItemName(bag, slot)
+				local time = start + cd
+				tracker.setTrackedSpellOnCD(UnitName("player"), aName, time)
+			end
+		end
+	end
+end
+
 -- We save here our tickrate, then initialise nextTick.
 BRH_CDTracker.tickRate = 1;
 BRH_CDTracker.nextTick = GetTime() + BRH_CDTracker.tickRate;
 
 BRH_CDTracker.main:SetScript("OnUpdate", function() 
 	if (BRH_CDTracker.nextTick and BRH_CDTracker.nextTick <= GetTime()) then
-		--BRH.updateSpellsOnCD()
+		--tracker.updateSpellsOnCD()
 		if (BRH_CDTrackerConfig and BRH_CDTrackerConfig.show) then
-			BRH.updateGUI()
+			tracker.updateGUI()
 		end
 		BRH_CDTracker.nextTick = GetTime() + BRH_CDTracker.tickRate;
 	end
@@ -549,59 +467,34 @@ end)
 
 BRH_CDTracker.main:SetScript("OnEvent", function()
 
-	if (event == "CHAT_MSG_SPELL_PERIODIC_PARTY_BUFFS" or event == "CHAT_MSG_SPELL_PERIODIC_PARTY_DAMAGE")  then
-		if BRH_spellsToTrack ~= nil then 
-			for class, spells in pairs(BRH_spellsToTrack) do
-				for spell, data in pairs(spells) do
-					if (string.find(strlow(arg1), strlow(spell))) then
-						BRH_spellsToTrack[class][spell].onCD[util.strsplit(" ", arg1)[1]] = GetTime() + (spellDuration[strlow(spell)] / 1000);
-						BRH_spellsToTrack[class][spell].CD = spellDuration[strlow(spell)] / 1000;
-					end
-				end
-			end
-		end
-	end
-
-
-	if (event == "ADDON_LOADED" and arg1 ~= "BlastRaidHelper") then return end;
-
 	if (event == "ADDON_LOADED" and arg1 == "BlastRaidHelper") then 
-
 		BRH_CDTrackerConfig = BRH_CDTrackerConfig or {
 			["show"] = false
 		}
-		
 		BRH_spellsToTrack = BRH_spellsToTrack or {}
-		
-		spellOnCDCheck = {
-			["spell"] = {},
-			["item"] = {}
-		};
-		
-		if BRH_SpellCastCount == nil then
-			BRH_SpellCastCount = {}
-		end
 
 		for class, spells in pairs(BRH_spellsToTrack) do
 			for spell, data in pairs(spells) do
-				BRH_spellsToTrack[class][spell].onCD = nil;
-				BRH_spellsToTrack[class][spell].onCD = {};
+				BRH_spellsToTrack[spell].onCD = nil;
+				BRH_spellsToTrack[spell].onCD = {};
 			end
 		end
-		BRH.buildTrackedSpellsGUI();
-	end;
+		tracker.buildTrackedSpellsGUI();
+	elseif (event == "CHAT_MSG_ADDON" and arg1 == BRH.syncPrefix) then
+		tracker.HandleAddonMSG(arg4, arg2);
+	end
 
-	BRH.getTrackedSpellsInRaid();
 end)
 
---[[ ADDON MSG HANDLING
-	elseif (cmd == "trackedSpellUsed") then
-		-- handleTrackedSpellUsed(sender, datas);
-	elseif (cmd == "trackedSpellUp" and UnitName("Player") ~= sender) then
-		-- handleTrackedSpellUp(sender, datas)
-	elseif (cmd == "getTrackedSpells") then
-		--BRH.getMyTrackedSpells();
-]]
+function tracker.HandleAddonMSG(sender, data)
+	local split = BRH.strsplit(";;;", data)
+	local cmd = split[1]
+	local datas = split[2]
+
+	if (cmd == "trackedSpellUsed") then
+		handleTrackedSpellUsed(sender, datas);
+	end
+end
 
 local function CDTrackerHandle(msg)
 	
@@ -612,46 +505,31 @@ local function CDTrackerHandle(msg)
 
 	if (cmd == "track" or cmd == "untrack") then
 		if (not arg or arg == "") then
-			util.print("/cdtracker (un)track Classe Nom du sort");
+			util.print("/cdtracker (un)track Nom du sort");
 			return
 		end
 
-		local split2 = util.strsplit(" ", arg)
-		local class = split2[1]
-		tremove(split2, 1)
-		local spellName = table.concat(split2, " ");
+		local spellName = arg;
 
-		if (not spellName or spellName == "" or not class or class == "") then
-			util.print("/cdtracker (un)track Classe Nom du sort");
+		if (not spellName or spellName == "") then
+			util.print("/cdtracker (un)track Nom du sort");
 			return
 		end 
-
-		class = strlow(class)
-
-		-- user might be dumb
-		if (class == "guerrier") then class = "warrior"
-		elseif (class == "voleur") then class = "roguer"
-		elseif (class == "druide") then class = "druid"
-		elseif (class == "chasseur") then class = "hunter"
-		elseif (class == "démoniste" or class == "demoniste") then class = "warlock"
-		elseif (class == "prêtre" or class == "pretre") then class = "priest"
-		elseif (class == "chaman") then class = "shaman"
-		end
 
 		spellName = strlow(spellName)
 		
 		-- and we work for him...
-		local icon = BRH.BS:GetSpellIcon(spellName);
+		local icon = tracker.BS:GetSpellIcon(spellName);
 		if not icon then
 			util.print("Le Nom du sort doit être Exacte et dans la langue de votre jeu !");
-			util.print("/cdtracker (un)track Classe Nom du sort");
+			util.print("/cdtracker (un)track Nom du sort");
 			return;
 		end
 
 		if (cmd == "track") then
-			BRH.trackSpell(class, icon, spellName)
+			tracker.trackSpell(icon, spellName)
 		elseif (cmd == "untrack") then
-			BRH.unTrackSpell(class, icon, spellName)
+			tracker.unTrackSpell(icon, spellName)
 		end
 	elseif (cmd == "show") then
 		BRH_CDTrackerConfig.show = true
