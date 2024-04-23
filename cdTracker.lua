@@ -1,3 +1,4 @@
+--[[
 local strlow = string.lower;
 
 BRH.cdTracker = {}
@@ -290,7 +291,7 @@ end
 --[[
 This code hooks UseAction
 ]]
-
+--[[
 savedUseAction = UseAction
 
 newUseAction = function(actionindex, x, y)
@@ -359,6 +360,7 @@ end
 --[[
 This code hooks CastSpellByName()
 ]]
+--[[
 savedCastSpellByName = CastSpellByName
 newCastSpellByName = function(name, onself)
 
@@ -416,6 +418,7 @@ end
 --[[
 This code hooks UseInventoryItem()
 ]]
+--[[
 savedUseInventoryItem = UseInventoryItem
 newUseInventoryItem = function(slot)
 	-- Check for CD
@@ -465,6 +468,7 @@ end
 --[[GetContainerItemCooldown
 This code hooks UseContainerItem()
 ]]
+--[[
 savedUseContainerItem = UseContainerItem
 newUseContainerItem = function(bag, slot, onSelf)
 
@@ -592,7 +596,7 @@ function tracker.HandleAddonMSG(sender, data)
 			end
 		elseif (GetLocale() == "frFR") then 
 			if (BRH.BS:HasTranslation(spellData[1]) ~= nil) then
-				spellName = strlow(BRH.BS[spellData[1]])
+				spellName = strlow(BRH.BS[spellData[1]] --[[) 
 				if (spellData[2] == 0) then
 					BRH_spellsToTrack[spellname].onCd[sender] = false
 				else
@@ -664,3 +668,4 @@ end
 
 SLASH_CDTRACK1 = "/cdtracker"
 SlashCmdList["CDTRACK"] = CDTrackerHandle
+]]
