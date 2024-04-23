@@ -4,7 +4,7 @@
 
 BRH = {};
 BRH.syncPrefix = "BRH_Sync"
-BRH.build = "550"
+BRH.build = "600"
 
 if (BRH_Config == nil) then
 	BRH_spellsToTrack = nil;
