@@ -113,6 +113,7 @@ amTank.frame:RegisterEvent("PLAYER_REGEN_ENABLED")
 
 amTank.frame:SetScript("OnEvent", function()
 	if not BRH_Config.amTank then return end
+	if not UnitInRaid("player") then return end
 
     if event == "PLAYER_REGEN_DISABLED" then
         amTank.inCombat = true

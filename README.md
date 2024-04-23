@@ -19,6 +19,8 @@ WoW Vanilla ( 1.12 ) Addon - Adds helper functions and macro usefull for high le
 
 `/BOPIfCan`: Similar to `infuIfCan` but for casting Blessing of Protection.
 
+`/iamtank` : if ON then if you are the target of target it will announce when you miss for the 5 first seconds of the fight
+
 
 ## For raid officers:
 
@@ -31,7 +33,5 @@ WoW Vanilla ( 1.12 ) Addon - Adds helper functions and macro usefull for high le
 `/igniteTracker`: Tracks Ignite, its damage, and who it's on.
 
 ## Upcoming:
-
-Tank miss announcer, which would automatically announce a miss/dodge/parry in the first 10 seconds of fights (so melee DPS can be cautious of aggro).
 
 Raid organizer. I had already done it but it wasn't optimized at all. It will allow preparing groups for C'thun in advance and setting them up with a single click.
