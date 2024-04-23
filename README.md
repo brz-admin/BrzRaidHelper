@@ -1,4 +1,4 @@
-## BrzRaidHelper
+# BrzRaidHelper
 WoW Vanilla ( 1.12 ) Addon - Adds helper functions and macro usefull for high level raid
 
 `/LipAOE`: Allows warriors to take an invulnerability potion AND then AOE taunt, which allows them to be invulnerable during the duration of the AOE taunt. Also, using the macro locks it for other warriors who use it for 5 seconds, which allows chaining them without overlap, theoretically enabling huge packs of mobs to be AOE'd with tanks chaining the AOE taunts to maintain aggro.
@@ -20,7 +20,7 @@ WoW Vanilla ( 1.12 ) Addon - Adds helper functions and macro usefull for high le
 `/BOPIfCan`: Similar to `infuIfCan` but for casting Blessing of Protection.
 
 
-# For raid officers:
+## For raid officers:
 
 `/BRH [Check|checkEngineer]`: The first command checks who has the addon and in which version. The second command allows knowing how many engineers are in the raid (provided that all raid members have the addon).
 
@@ -30,7 +30,7 @@ WoW Vanilla ( 1.12 ) Addon - Adds helper functions and macro usefull for high le
 
 `/igniteTracker`: Tracks Ignite, its damage, and who it's on.
 
-# Upcoming:
+## Upcoming:
 
 Tank miss announcer, which would automatically announce a miss/dodge/parry in the first 10 seconds of fights (so melee DPS can be cautious of aggro).
 
