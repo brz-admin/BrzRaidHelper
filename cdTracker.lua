@@ -7,8 +7,6 @@ local util = BRH.util
 tracker.isBuilt = false;
 
 function tracker.trackSpell(icon, name)
-
-
 	if (BRH_spellsToTrack == nil) then
 		BRH_spellsToTrack = {}
 	end
@@ -509,6 +507,7 @@ function tracker.checkContainItem()
 			local start, cd, enable = GetContainerItemCooldown(bag, slot)
 			if (enable) then
 				local aName = util.getBagItemName(bag, slot)
+				if (aName == nil) then return end;
 				if (string.find(aName, "Potion")) then
 					aName = "potion"
 				end
