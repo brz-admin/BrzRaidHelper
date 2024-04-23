@@ -591,7 +591,7 @@ function tracker.HandleAddonMSG(sender, data)
 				tracker.setTrackedSpellOnCD(sender, spellname, spellData[2])
 			end
 		elseif (GetLocale() == "frFR") then 
-			if (BRH.BS[spellData[1]] ~= nil) then
+			if (BRH.BS:HasTranslation(spellData[1]) ~= nil) then
 				spellName = strlow(BRH.BS[spellData[1]])
 				if (spellData[2] == 0) then
 					BRH_spellsToTrack[spellname].onCd[sender] = false
