@@ -50,8 +50,6 @@ BRH_CDTracker = {}
 BRH_CDTracker.main = CreateFrame("Frame", "BRH_CDTracker_main")
 --BRH_CDTracker.main:ClearAllPoints();
 BRH_CDTracker.main:SetPoint("CENTER", "UIParent", "CENTER")
-BRH_CDTracker.main:SetWidth(55)
-BRH_CDTracker.main:SetHeight(5)
 BRH_CDTracker.main:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeSize = 5});
 BRH_CDTracker.main:SetBackdropColor(0,0,0,0.5);
 BRH_CDTracker.main:RegisterEvent("RAID_ROSTER_UPDATE")
@@ -65,6 +63,8 @@ BRH_CDTracker.main:SetScript("OnDragStop", function() this:StopMovingOrSizing() 
 
 function tracker.buildTrackedSpellsGUI()
 	local precedentFrame = nil;
+	BRH_CDTracker.main:SetWidth(55)
+	BRH_CDTracker.main:SetHeight(5)
 		for spell, datas in pairs(BRH_spellsToTrack) do
 			if datas.tracked then
 				if (BRH_CDTracker[spell] ~= nil) then
@@ -336,6 +336,9 @@ function tracker.checkActions()
 			local start, cd, enable = GetActionCooldown(actionIdx);
 			if (enable) then
 				local aName = util.getActionName(actionIdx);
+				if (string.find(aName, "Potion")) then
+					aName = "potion"
+				end
 				local time = start + cd
 				tracker.setTrackedSpellOnCD(UnitName("player"), aName, time)
 			end
@@ -495,7 +498,10 @@ function tracker.checkContainItem()
 			local slot = split[2]
 			local start, cd, enable = GetContainerItemCooldown(bag, slot)
 			if (enable) then
-				local aName = getBagItemName(bag, slot)
+				local aName = util.getBagItemName(bag, slot)
+				if (string.find(aName, "Potion")) then
+					aName = "potion"
+				end
 				local time = start + cd
 				tracker.setTrackedSpellOnCD(UnitName("player"), aName, time)
 			end
@@ -566,6 +572,9 @@ function tracker.HandleAddonMSG(sender, data)
 	elseif (cmd == "myCds" and sender ~= UnitName("Player")) then
 		local spellData = util.strsplit("::", datas)
 		local spellname = strlow(spellData[1])
+		if (string.find(spellname, "potion")) then
+			spellname = "potion"
+		end
 		if (BRH_spellsToTrack[spellname]) then
 			if (spellData[2] == 0) then
 				BRH_spellsToTrack[spellname].onCd[sender] = false
@@ -617,12 +626,14 @@ local function CDTrackerHandle(msg)
 		end 
 
 		spellName = strlow(spellName)
-		
-		-- and we work for him...
+
 		local icon = BRH.BS:GetSpellIcon(spellName);
-		if not icon then
+		if (spellName == "potion") then
+			icon = "Interface\\Icons\\trade_alchemy"
+		elseif not icon then
 			util.print("Le Nom du sort doit être Exacte et dans la langue de votre jeu !");
-			util.print("/cdtracker (un)track Nom du sort");
+			util.print("/cdtracker [un]track Nom du sort");
+			util.print("vous pouvez faire un /cdtracker [un]track potion pour tracker les CD de potions !");
 			return;
 		end
 
