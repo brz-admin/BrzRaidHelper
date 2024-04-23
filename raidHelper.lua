@@ -137,8 +137,8 @@ amTank.frame:SetScript("OnEvent", function()
 					SendChatMessage("-->> DODGE ON >>" .. target .. "<< !!! CAREFUL !!")
 				end
             end
-			util.print(event)
-			util.print(arg1)
+			
+			
         else
             amTank.inCombat = false
         end
