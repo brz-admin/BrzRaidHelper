@@ -24,6 +24,7 @@ local BabbleSpell = AceLibrary("AceLocale-2.2"):new(MAJOR_VERSION)
 
 -- uncomment below for debug information
 -- BabbleSpell:EnableDebugging()
+BabbleSpell:EnableDynamicLocales(true)
 
 BabbleSpell:RegisterTranslations("enUS", function()
     return {
@@ -2879,7 +2880,19 @@ BabbleSpell:RegisterTranslations("esES", function()
 		["Wrath of Air Totem"] = "Wrath of Air Totem", -- Old
 		["Wrath"] = "Cólera",
 		["Wyvern Sting"] = "Aguijón de dracoleón",		
-		
+		["Challenging Roar"] = "Clamor desafiante",
+		["Challenging Shout"] = "Grito desafiante",
+		["Fear Ward"] = "Custodia de miedo",
+		["Last Stand"] = "Última carga",
+		["Lifegiving Gem"] = "Gema dadora de vida",
+		["Portal: Darnassus"] = "Portal: Darnassus",
+		["Portal: Ironforge"] = "Portal: Forjaz",
+		["Portal: Orgrimmar"] = "Portal: Orgrimmar",
+		["Portal: Stormwind"] = "Portal: Ventormenta",
+		["Portal: Thunder Bluff"] = "Portal: Cima del Trueno",
+		["Portal: Undercity"] = "Portal: Entrañas",
+		["Shield Wall"] = "Muro de escudo",
+		["Gift of Life"] = "Obsequio de la vida",		
 	}
 end)
 
@@ -4310,25 +4323,6 @@ BabbleSpell:RegisterTranslations("ruRU", function()
 		["Wyvern Sting"] = "Укус виверны",
 	}
 end)
-
-BabbleSpell:RegisterTranslations("esES", function()
-    return {
-		["Challenging Roar"] = "Clamor desafiante",
-		["Challenging Shout"] = "Grito desafiante",
-		["Fear Ward"] = "Custodia de miedo",
-		["Last Stand"] = "Última carga",
-		["Lifegiving Gem"] = "Gema dadora de vida",
-		["Portal: Darnassus"] = "Portal: Darnassus",
-		["Portal: Ironforge"] = "Portal: Forjaz",
-		["Portal: Orgrimmar"] = "Portal: Orgrimmar",
-		["Portal: Stormwind"] = "Portal: Ventormenta",
-		["Portal: Thunder Bluff"] = "Portal: Cima del Trueno",
-		["Portal: Undercity"] = "Portal: Entrañas",
-		["Shield Wall"] = "Muro de escudo",
-		["Gift of Life"] = "Obsequio de la vida"
-	}
-end)
-
 BabbleSpell:RegisterTranslations("deDE", function()
 	return {
 		["Abolish Disease"]="Krankheit aufheben",
@@ -11841,7 +11835,7 @@ local spellIcons = {
 }
 
 BabbleSpell:Debug()
-BabbleSpell:SetStrictness(true)
+BabbleSpell:SetStrictness(false)
 
 function BabbleSpell:GetSpellIcon(spell)
 	self:argCheck(spell, 2, "string")
