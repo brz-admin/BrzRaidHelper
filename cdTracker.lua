@@ -142,65 +142,65 @@ function tracker.updateGUI()
 		end
 	end
 
-		for spell, datas in pairs(BRH_spellsToTrack) do
-			if datas.tracked then
-				local up, max = 0, 0;
-				for player, cd in pairs(datas.onCD) do
-					if (currRoster[player] ~= nil) then
-						if (BRH_CDTracker[spell].playersFrames[player] == nil) then
-							BRH_CDTracker[spell].playersFrames[player] = {}; 
-							BRH_CDTracker[spell].playersFrames[player].textZone = CreateFrame("Frame", "BRH_CDTracker_"..spell.."_playersFrames_"..player.."_textZone", BRH_CDTracker[spell].playersFrame);
-							BRH_CDTracker[spell].playersFrames[player].textZone:SetPoint("TOPLEFT", "BRH_CDTracker_"..spell.."_PlayerFrame", "TOPLEFT", 0, -(10*max))
-							BRH_CDTracker[spell].playersFrames[player].textZone:SetWidth(80)
-							BRH_CDTracker[spell].playersFrames[player].textZone:SetHeight(10)
-							BRH_CDTracker[spell].playersFrames[player].textZone:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeSize = 5});
-							BRH_CDTracker[spell].playersFrames[player].textZone:SetBackdropColor(0,0,0,1);
-							BRH_CDTracker[spell].playersFrames[player].playerName = BRH_CDTracker[spell].playersFrames[player].textZone:CreateFontString("BRH_CDTracker_"..spell.."_playersFrames_"..player.."_Name", "ARTWORK", "GameFontWhite")
-							BRH_CDTracker[spell].playersFrames[player].playerName:SetPoint("LEFT", "BRH_CDTracker_"..spell.."_playersFrames_"..player.."_textZone", "LEFT", 2, 0);
-							BRH_CDTracker[spell].playersFrames[player].playerName:SetText(player);
-							BRH_CDTracker[spell].playersFrames[player].playerName:SetFont("Fonts\\FRIZQT__.TTF", 6)
-							BRH_CDTracker[spell].playersFrames[player].playerName:SetTextColor(1, 1, 1, 1);
-							BRH_CDTracker[spell].playersFrames[player].cdBG = CreateFrame("Frame", "BRH_CDTracker_"..spell.."_playersFrames_"..player.."_cdBG", BRH_CDTracker[spell].playersFrame);
-							BRH_CDTracker[spell].playersFrames[player].cdBG:SetPoint("TOPLEFT", "BRH_CDTracker_"..spell.."_PlayerFrame", "TOPLEFT", 		15, -(10*max))
-							BRH_CDTracker[spell].playersFrames[player].cdBG:SetHeight(10)
-							BRH_CDTracker[spell].playersFrames[player].cdBG:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeSize = 5});
-							BRH_CDTracker[spell].playersFrames[player].cdBG:SetBackdropColor(255,255,0,1);
-							BRH_CDTracker[spell].playersFrames[player].cd = BRH_CDTracker[spell].playersFrames[player].textZone:CreateFontString("BRH_CDTracker_"..spell.."_playersFrames_"..player.."_cd", "ARTWORK", "GameFontWhite")
-							BRH_CDTracker[spell].playersFrames[player].cd:SetPoint("RIGHT", "BRH_CDTracker_"..spell.."_playersFrames_"..player.."_textZone", "RIGHT", -2, 0);
-							BRH_CDTracker[spell].playersFrames[player].cd:SetText("Up !");
-							BRH_CDTracker[spell].playersFrames[player].cd:SetFont("Fonts\\FRIZQT__.TTF", 6)
-							BRH_CDTracker[spell].playersFrames[player].cd:SetTextColor(1, 1, 1, 1);
-						end
-						if (not cd) then 
-							BRH_CDTracker[spell].playersFrames[player].cdBG:SetWidth(0)
-							up = up+1 
-						elseif (cd ~= "-1" and tonumber(cd) <= GetTime()) then 
-							BRH_spellsToTrack[spell].onCD[player] = false;
-							BRH_CDTracker[spell].playersFrames[player].cd:SetText("Up !");
-							BRH_CDTracker[spell].playersFrames[player].cdBG:SetWidth(0)
-							up = up+1 
-						else
-							local timer = cd-GetTime()
-							BRH_CDTracker[spell].playersFrames[player].cd:SetText(util.STC_MIN(timer));
-							local scale = 65 * (1-(timer/datas.CD));
-							BRH_CDTracker[spell].playersFrames[player].cdBG:SetWidth(scale)
-						end
-						max = max +1
+	for spell, datas in pairs(BRH_spellsToTrack) do
+		if datas.tracked then
+			local up, max = 0, 0;
+			for player, cd in pairs(datas.onCD) do
+				if (currRoster[player] ~= nil) then
+					if (BRH_CDTracker[spell].playersFrames[player] == nil) then
+						BRH_CDTracker[spell].playersFrames[player] = {}; 
+						BRH_CDTracker[spell].playersFrames[player].textZone = CreateFrame("Frame", "BRH_CDTracker_"..spell.."_playersFrames_"..player.."_textZone", BRH_CDTracker[spell].playersFrame);
+						BRH_CDTracker[spell].playersFrames[player].textZone:SetPoint("TOPLEFT", "BRH_CDTracker_"..spell.."_PlayerFrame", "TOPLEFT", 0, -(10*max))
+						BRH_CDTracker[spell].playersFrames[player].textZone:SetWidth(80)
+						BRH_CDTracker[spell].playersFrames[player].textZone:SetHeight(10)
+						BRH_CDTracker[spell].playersFrames[player].textZone:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeSize = 5});
+						BRH_CDTracker[spell].playersFrames[player].textZone:SetBackdropColor(0,0,0,1);
+						BRH_CDTracker[spell].playersFrames[player].playerName = BRH_CDTracker[spell].playersFrames[player].textZone:CreateFontString("BRH_CDTracker_"..spell.."_playersFrames_"..player.."_Name", "ARTWORK", "GameFontWhite")
+						BRH_CDTracker[spell].playersFrames[player].playerName:SetPoint("LEFT", "BRH_CDTracker_"..spell.."_playersFrames_"..player.."_textZone", "LEFT", 2, 0);
+						BRH_CDTracker[spell].playersFrames[player].playerName:SetText(player);
+						BRH_CDTracker[spell].playersFrames[player].playerName:SetFont("Fonts\\FRIZQT__.TTF", 6)
+						BRH_CDTracker[spell].playersFrames[player].playerName:SetTextColor(1, 1, 1, 1);
+						BRH_CDTracker[spell].playersFrames[player].cdBG = CreateFrame("Frame", "BRH_CDTracker_"..spell.."_playersFrames_"..player.."_cdBG", BRH_CDTracker[spell].playersFrame);
+						BRH_CDTracker[spell].playersFrames[player].cdBG:SetPoint("TOPLEFT", "BRH_CDTracker_"..spell.."_PlayerFrame", "TOPLEFT", 		15, -(10*max))
+						BRH_CDTracker[spell].playersFrames[player].cdBG:SetHeight(10)
+						BRH_CDTracker[spell].playersFrames[player].cdBG:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeSize = 5});
+						BRH_CDTracker[spell].playersFrames[player].cdBG:SetBackdropColor(255,255,0,1);
+						BRH_CDTracker[spell].playersFrames[player].cd = BRH_CDTracker[spell].playersFrames[player].textZone:CreateFontString("BRH_CDTracker_"..spell.."_playersFrames_"..player.."_cd", "ARTWORK", "GameFontWhite")
+						BRH_CDTracker[spell].playersFrames[player].cd:SetPoint("RIGHT", "BRH_CDTracker_"..spell.."_playersFrames_"..player.."_textZone", "RIGHT", -2, 0);
+						BRH_CDTracker[spell].playersFrames[player].cd:SetText("Up !");
+						BRH_CDTracker[spell].playersFrames[player].cd:SetFont("Fonts\\FRIZQT__.TTF", 6)
+						BRH_CDTracker[spell].playersFrames[player].cd:SetTextColor(1, 1, 1, 1);
+					end
+					if (not cd) then 
+						BRH_CDTracker[spell].playersFrames[player].cdBG:SetWidth(0)
+						up = up+1 
+					elseif (cd ~= "-1" and tonumber(cd) <= GetTime()) then 
+						BRH_spellsToTrack[spell].onCD[player] = false;
+						BRH_CDTracker[spell].playersFrames[player].cd:SetText("Up !");
+						BRH_CDTracker[spell].playersFrames[player].cdBG:SetWidth(0)
+						up = up+1 
 					else
-						if (BRH_CDTracker[spell].playersFrames[player] ~= nil) then
-							BRH_CDTracker[spell].playersFrames[player].textZone:Hide();
-							BRH_CDTracker[spell].playersFrames[player].playerName:Hide();
-							BRH_CDTracker[spell].playersFrames[player].cdBG:Hide();
-							BRH_CDTracker[spell].playersFrames[player].cd:Hide();
-							BRH_CDTracker[spell].playersFrames[player] = nil
-						end
+						local timer = cd-GetTime()
+						BRH_CDTracker[spell].playersFrames[player].cd:SetText(util.STC_MIN(timer));
+						local scale = 65 * (1-(timer/datas.CD));
+						BRH_CDTracker[spell].playersFrames[player].cdBG:SetWidth(scale)
+					end
+					max = max +1
+				else
+					if (BRH_CDTracker[spell].playersFrames[player] ~= nil) then
+						BRH_CDTracker[spell].playersFrames[player].textZone:Hide();
+						BRH_CDTracker[spell].playersFrames[player].playerName:Hide();
+						BRH_CDTracker[spell].playersFrames[player].cdBG:Hide();
+						BRH_CDTracker[spell].playersFrames[player].cd:Hide();
+						BRH_CDTracker[spell].playersFrames[player] = nil
 					end
 				end
-				if (BRH_CDTracker[spell] ~= nil and BRH_CDTracker[spell].text ~= nil ) then 
-					BRH_CDTracker[spell].text:SetText(up.."/"..max);
-				end
+			end
+			if (BRH_CDTracker[spell] ~= nil and BRH_CDTracker[spell].text ~= nil ) then 
+				BRH_CDTracker[spell].text:SetText(up.."/"..max);
 			end
 		end
+	end
 
 end
 
@@ -569,7 +569,7 @@ function tracker.HandleAddonMSG(sender, data)
 		end
 	elseif (cmd == "getTrackedSpells") then
 		tracker.getMyCds()
-	elseif (cmd == "myCds" and sender ~= UnitName("Player")) then
+	elseif (cmd == "myCds") then
 		local spellData = util.strsplit("::", datas)
 		local spellname = strlow(spellData[1])
 		if (string.find(spellname, "potion")) then
