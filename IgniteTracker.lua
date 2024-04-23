@@ -250,21 +250,21 @@ igniteTracker.main:SetScript("OnEvent", function()
 		end
 	elseif (event == "CHAT_MSG_SPELL_PARTY_DAMAGE" or event == "CHAT_MSG_SPELL_SELF_DAMAGE") then
         -- fired at spell casted by party member
-		local target, damage, damageSchool, source, spellName, damageType, soureClass;
+		local target, damage, damageSchool, source, spellName, damageType, sourceClass;
 		if (event == "CHAT_MSG_SPELL_PARTY_DAMAGE") then
 			target, damage, damageSchool, source, spellName, damageType = parser.partySpellDamage(arg1)
 			if (source ~= nil) then
 				TargetByName(source)
-				soureClass = UnitClass("target")
+				sourceClass = UnitClass("target")
 				TargetLastTarget()
 			end
 		elseif (event == "CHAT_MSG_SPELL_SELF_DAMAGE") then
 			target, damage, damageSchool, source, spellName, damageType = parser.selfSpellDamage(arg1)
-			soureClass = pClass
+			sourceClass = pClass
 		end
 		if (sourceClass == nil) then return end;
         -- Not a mage, we don't care about you
-		if (string.lower(soureClass) ~= "mage") then return end;
+		if (string.lower(sourceClass) ~= "mage") then return end;
 		if (damageType == "crit" and (damageSchool == "Fire" or damageSchool == "Feu")) then
             -- we only are interested in theses spells
 			if (rollingIgnite[target] == nil) then 
