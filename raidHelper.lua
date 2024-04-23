@@ -134,7 +134,7 @@ function plsInfu.HandleAddonMSG(sender, data)
 	local cmd = split[1]
 	local datas = split[2]
 
-    if (cmd == "plsInfu" and datas == UnitName("Player")) then
+    if (cmd == "plsInfu" and strlow(datas) == strlow(UnitName("Player"))) then
         plsInfu.askedInfu = sender
         util.print(sender.." a demandé une infu !");
     end
@@ -176,6 +176,7 @@ function plsbop.BOPIfCan(msg)
 		-- don't try to cast if it's on CD
 		if (bopCD == nil) then return end;
 
+		SpellStopCasting();
 		TargetByName(plsbop.askedBOP, true);
 		CastSpellByName(bop)
 		TargetLastTarget();
@@ -189,8 +190,8 @@ function plsbop.HandleAddonMSG(sender, data)
 	local cmd = split[1]
 	local datas = split[2]
 
-    if (cmd == "plsBOP" and datas == UnitName("Player")) then
-        askedBOP = sender
+    if (cmd == "plsBOP" and strlow(datas) == strlow(UnitName("Player"))) then
+        plsbop.askedBOP = sender
         util.print(sender.." a demandé une BOP !")
     end
 
