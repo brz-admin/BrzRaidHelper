@@ -94,6 +94,69 @@ end
 SLASH_SCD1 = "/SCD"
 SlashCmdList["SCD"] = scd.cmdHandle
 
+-------- iamtank -----------
+-- Allow auto announcing of tank misses at the start of the fight
+
+RH.amTank = {}
+local amTank = RH.amTank
+if BRH_Config.amTank == nil then
+	BRH_Config.amTank = false
+end
+
+amTank.frame = CreateFrame("Frame", "BRH_amTankFrame")
+amTank.startTime = 0
+amTank.duration = 5  -- 5 seconds
+amTank.inCombat = false
+
+amTank.frame:RegisterEvent("PLAYER_REGEN_DISABLED")
+amTank.frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+
+amTank.frame:SetScript("OnEvent", function()
+	if not BRH_Config.amTank then return end
+
+    if event == "PLAYER_REGEN_DISABLED" then
+        amTank.inCombat = true
+        amTank.startTime = GetTime()
+        this:RegisterEvent("CHAT_MSG_COMBAT_SELF_MISSES")
+        this:RegisterEvent("CHAT_MSG_SPELL_SELF_DAMAGE")
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        amTank.inCombat = false
+        this:UnregisterEvent("CHAT_MSG_COMBAT_SELF_MISSES")
+        this:UnregisterEvent("CHAT_MSG_SPELL_SELF_DAMAGE")
+    elseif amTank.inCombat then
+        local currentTime = GetTime()
+        if currentTime - amTank.startTime <= amTank.duration and UnitName("TargetOfTarget") == UnitName("Player") then
+			local target = UnitName("target")
+            if event then
+				if (string.find(arg1, " miss ") or string.find(arg1, " rate ")) then
+					SendChatMessage("-->> MISS ON >>" .. target .. "<< !!! CAREFUL !!")
+				elseif (string.find(arg1, " parries") or string.find(arg1, " parre")) then
+					SendChatMessage("-->> PARRY ON >>" .. target .. "<< !!! CAREFUL !!")
+				elseif (string.find(arg1, " dodged") or string.find(arg1, " esquive")) then
+					SendChatMessage("-->> DODGE ON >>" .. target .. "<< !!! CAREFUL !!")
+				end
+            end
+			util.print(event)
+			util.print(arg1)
+        else
+            amTank.inCombat = false
+        end
+    end
+end)
+
+function amTank.Handle(msg)
+	if (BRH_Config.amTank) then
+		BRH_Config.amTank = false
+		util.print("Tank miss announces : OFF")
+	else
+		BRH_Config.amTank = true
+		util.print("Tank miss announces : ON")
+	end
+end
+
+SlashCmdList["AMTANK"] = amTank.Handle
+SLASH_AMTANK1 = "/iamtank"
+
 
 -------- plsBop & plsInfu -----------
 -- Allow Players in raid to ask for a BOP or an INFU and paladin/priest to cast it before casting anything else
@@ -396,11 +459,6 @@ local function BRHcmdHandle(msg)
 		end
 	end
 end
-
-
-
-
-
 
 SLASH_BRH1 = "/BRH"
 SlashCmdList["BRH"] = BRHcmdHandle

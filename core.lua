@@ -6,7 +6,8 @@ if (BRH_Config == nil) then
 	BRH_spellsToTrack = nil;
 	BRH_spellsToTrack = {};
 	BRH_Config = {
-		["build"] = BRH.build
+		["build"] = BRH.build,
+		["amTank"] = false
 	} 
 	BRH_TrackedSpells = nil
 	BRH_CDTrackerConfig = {
