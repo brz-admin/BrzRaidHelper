@@ -620,10 +620,10 @@ BRH_CDTracker.main:SetScript("OnEvent", function()
 
 end)
 
+if (BRH_CDTrackerConfig.annCD == nil) then BRH_CDTrackerConfig.annCD = false end;
+
 -- to allow client to handle this calmly and not stutter we are gonna queue the CD list to update
 tracker.cdListQueue = {}
-
-
 function tracker.HandleAddonMSG(sender, data)
 	local split = util.strsplit(";;;", data)
 	local cmd = split[1]
@@ -632,6 +632,9 @@ function tracker.HandleAddonMSG(sender, data)
 		local spellData = util.strsplit(":", datas)
 		local spellname = strlow(spellData[1])
 		if (strlow(sender) ~= strlow(UnitName("Player"))) then
+			if (BRH_CDTrackerConfig.annCD) then
+				util.print("\124cffcc7930["..sender.."]\124r used \124cff26d36e["..spellname.."]\124r. Up in \124cff26d3b9"..(math.ceil(spellData[2] - GetTime())).."\124rs")
+			end
 			tracker.setTrackedSpellOnCD(sender, spellname, spellData[2])
 		end
 	elseif (cmd == "getTrackedSpells") then
@@ -689,6 +692,14 @@ local function CDTrackerHandle(msg)
 	elseif (cmd == "hide") then
 		BRH_CDTrackerConfig.show = false
 		BRH_CDTracker.main:Hide();
+	elseif (cmd == "ann") then
+		if (BRH_CDTrackerConfig.annCD) then
+			BRH_CDTrackerConfig.annCD = false
+			util.print("Tracker announces off")
+		else 
+			BRH_CDTrackerConfig.annCD = true
+			util.print("Tracker announces on")
+		end
 	end
 end
 

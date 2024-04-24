@@ -28,7 +28,9 @@ WoW Vanilla ( 1.12 ) Addon - Adds helper functions and macro usefull for high le
 
 `/BRH [vacume|vacumelegend|stopvacume]`: The vacume tool is used for loot management during a speedrun. Basically, `/BRH vacume [PLAYERNAME]` designates a loot vacuum. The raid is set to group loot mode, and each time loot drops, all raid members pass automatically except the designated player. The advantage is that it avoids having to click on anything, and no one wastes time looting. `/BRH vacumelegend [PLAYERNAME]` sends legendary loot to the designated player (vacume doesn't automatically pass legendary loot for obvious reasons). It's useful for assigning Atiesh shards to the right person. `stopvacume` stops this function. I plan to adjust this to allow raid leaders to designate recipients for certain loot when possible.
 
-`/cdtracker`: A project for later, which was more or less done but needs optimization. The idea is simply that every time a player casts a spell, the addon communicates it to others, allowing tracking of raid-wide cooldowns. Handy for knowing if abilities like Recklessness, Death Wish, and other important raid spells are available. I intended to use it as a raid leader to avoid having to ask for CD information.
+`/cdtracker [track|untrack] SPELLNAME`: Allow to track or untrack Cds ( if they are longer than 30s ). You can add any spell by putting it's name. You can also put items like Gobling Sapper Charge or dynamite. For potions CD tracking just put "potion" as an argument.
+`/cdtracker [show|hide]`: hide or show the cdTracker
+`/cdtracker ann`: puts a chat message everytime someone uses a CD (even if you don't track it)
 
 `/igniteTracker`: Tracks Ignite, its damage, and who it's on.
 

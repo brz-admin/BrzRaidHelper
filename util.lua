@@ -3,14 +3,14 @@ local strlow = string.lower;
 
 BRH.util = {}
 local util = BRH.util
-
+--|cff64fc8aBrz|rRaid|cffb0fc64Helper|r
 -- Print to chat frame, used for  debug mostly
 function util.print(msg)
 	if (msg == nil) then 
-		DEFAULT_CHAT_FRAME:AddMessage("BRH: Print Argumenet is nil.", 0.5, 1, 1)
+		DEFAULT_CHAT_FRAME:AddMessage("[\124cff64fc8aB\124r\124cffffffffr\124r\124cffb0fc64H\124r] >> ERROR : Print Argumenet is \124cffffffffnil\124r.", 0.75, 1, 0.75)
 		return
 	end
-	DEFAULT_CHAT_FRAME:AddMessage("BRH: "..msg, 0.50,0.5,1)
+	DEFAULT_CHAT_FRAME:AddMessage("[\124cff64fc8aB\124r\124cffffffffr\124r\124cffb0fc64H\124r] >> "..msg, 0.75, 1, 0.75)
 end
 
 -- Send message to other BRH users  
