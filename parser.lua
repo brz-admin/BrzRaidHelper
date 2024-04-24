@@ -102,3 +102,15 @@ function parser.selfSpellDamage(msg)
 
     return target, damage, damageSchool, source, spellName, damageType
 end
+
+function parser.cdStringToSeconds(str)
+    local _, _, number = string.find(str, "(%d+)");
+    
+    if (number == nil) then return 0 end
+
+    if (string.find(str, "sec")) then
+        return tonumber(number)
+    else 
+        return tonumber(number) * 60
+    end
+end

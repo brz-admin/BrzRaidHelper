@@ -347,11 +347,21 @@ end
 function util.getBagItemName(bag, slot)
 	util.BRH_ToolTipFrame:ClearLines()
 	util.BRH_ToolTipFrame:SetBagItem(bag, slot)
-	return BRH_ToolTipFrameTextLeft1:GetText()
+	return BRH_ToolTipFrameTextLeft1:GetText(), BRH_ToolTipFrameTextLeft2:GetText()
 end
 
 function util.getActionName(actionindex)
 	util.BRH_ToolTipFrame:ClearLines()
 	util.BRH_ToolTipFrame:SetAction(actionindex)
 	return BRH_ToolTipFrameTextLeft1:GetText()
+end
+
+function util.getSpellCooldownInBook(spellBookId)
+	util.BRH_ToolTipFrame:ClearLines()
+	util.BRH_ToolTipFrame:SetSpell(spellBookId, BOOKTYPE_SPELL);
+	if (BRH_ToolTipFrameTextRight3:GetText() == "" or BRH_ToolTipFrameTextRight3:GetText() == nil) then
+		return 0
+	else
+		return parser.cdStringToSeconds(BRH_ToolTipFrameTextRight3:GetText())
+	end
 end
