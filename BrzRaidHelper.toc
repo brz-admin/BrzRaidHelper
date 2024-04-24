@@ -1,5 +1,5 @@
 ## Interface: 11200
-## Title: |cff64fc8aBrz|r|cffffffffraid|r|cffb0fc64Helper|r
+## Title: |cff64fc8aBrz|cffffffffraid|cffb0fc64Helper
 ## Version: 200
 ## Notes: Multiple Useful Macros for Raids
 ## SavedVariablesPerCharacter: BRH_TrackedSpells, BRH_CDTrackerConfig, BRH_spellsToTrack, BRH_SpellCastCount, BRH_config
