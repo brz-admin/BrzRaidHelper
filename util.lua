@@ -119,36 +119,42 @@ function util.getSpellCD(spellName)
 	return spellCD;
 end
 
-BRH.spellSlotByIcon = {}
-function BRH.getSpellCDByIcon(icon)
-	-- Careful with this one as it's not realy a good one tbh.
-	-- Some spells have multiple rank.
-	-- logic wants that the last one is the biggest rank so we are gonna loop and save the last one.
-	if (BRH.spellSlotByIcon[icon] == nil) then
-		local numspells = 0
-		-- getting total number of spells
-		for i = 1, GetNumSpellTabs() do
-			_, _, _, temp = GetSpellTabInfo(i)
-			numspells = numspells + temp
-		end
-	
-		-- for each spell check if it's the one we are looking for
-		for i = 1, numspells do
-			if (strlow(GetSpellTexture(i, BOOKTYPE_SPELL)) == strlow(icon)) then
-				BRH.spellSlotByIcon[icon] = i;
-				-- we don't break cos we want to get lastrank
+function util.hasValue (tab, val)
+    for key, value in pairs(tab) do
+        if tonumber(value) == tonumber(val) then
+            return true
+        end
+    end
+    return false
+end
+
+function util.getKeyName(tab, key)
+	for k,_ in pairs(tab) do
+		if k == key then return k end
+	end
+end
+
+function util.StripTextures(frame, hide, layer)
+	for _,v in ipairs({frame:GetRegions()}) do
+		if v.SetTexture then
+			local check = true
+			if layer and v:GetDrawLayer() ~= layer then check = false end
+
+			if check then
+				if hide then
+					v:Hide()
+				else
+					v:SetTexture(nil)
+				end
 			end
 		end
 	end
-
-	if BRH.spellSlotByIcon[icon] == nil then return nil end;
-
-	local start, spellCD = GetSpellCooldown(BRH.spellSlotByIcon[icon], BOOKTYPE_SPELL)
-	spellCD = (start + spellCD) - GetTime()
-
-	if (spellCD < 0) then return 0 end;
-	return spellCD;
 end
+
+function util.tableclone(org)
+	return {unpack(org)}
+end
+
 
 function util.GetItemInBag(textEN,textFR)
 	for bag=0,4 do

@@ -1,11 +1,7 @@
-local dbug = false;
-local dbuglvl = 0;
-local assignatedPlayers = {};
+local util = BRH.util
 
-
-local CurrentSetup = nil;
-
-local CLASS_ICON_TCOORDS = CLASS_ICON_TCOORDS or {
+-- Useful icons coords
+CLASS_ICON_TCOORDS = CLASS_ICON_TCOORDS or {
 	["WARRIOR"]     = {0, 0.25, 0, 0.25},
 	["MAGE"]        = {0.25, 0.49609375, 0, 0.25},
 	["ROGUE"]       = {0.49609375, 0.7421875, 0, 0.25},
@@ -19,35 +15,40 @@ local CLASS_ICON_TCOORDS = CLASS_ICON_TCOORDS or {
 	["GM"]          = {0.5, 0.73828125, 0.5, .75},
   }
 
-VRO = {};
-VRO_SETS = VRO_SETS;
-if (VRO_SETS == nil) then VRO_SETS = {} end
-VRO_Members = VRO_Members;
+-- module initialisation
+BRH.VanillaRaidOrganizer = {};
+local vro = BRH.VanillaRaidOrganizer
+
+vro.syncPrefix = "VRO_Sync"
+
+-- module saved variables
+BRH_RaidOrganizer = BRH_RaidOrganizer or {}
+
+BRH_RaidOrganizer.sets = BRH_RaidOrganizer.sets or {};
+BRH_RaidOrganizer.members = BRH_RaidOrganizer.members or {};
+BRH_RaidOrganizer.conf = BRH_RaidOrganizer.conf or {};
+BRH_RaidOrganizer.conf.show = BRH_RaidOrganizer.conf.show or true;
+
+-- used fonction pre-loading, faster they say
 strlow = string.lower;
 strfor = string.format;
 tinsert = table.insert;
 GetRaidRosterInfo = GetRaidRosterInfo;
 SwapRaidSubgroup = SwapRaidSubgroup;
 
-VRO_CONF = VRO_CONF;
-if not (VRO_CONF) then
-	VRO_CONF = {}
-end
-
-if not VRO_CONF.show then
-	VRO_CONF.show = true
-end
-
-VRO.syncPrefix = "VRO_Sync"
-
-VRO_gui = {}
-VRO_gui.selected = nil;
-if (VRO_gui.groups == nil) then
-	VRO_gui.groups = {}
+-- module variables
+vro.dbug = true;
+vro.dbuglvl = 3;
+vro.assignedPlayers = {};
+vro.CurrentSetup = nil;
+vro.gui = {}
+vro.gui.selected = nil;
+if (vro.gui.groups == nil) then
+	vro.gui.groups = {}
 	for g = 1,8 do
-		VRO_gui.groups[g] = {}
+		vro.gui.groups[g] = {}
 		for p = 1,5 do
-			VRO_gui.groups[g][p] = {
+			vro.gui.groups[g][p] = {
 				["sign"] = 0,
 				["class"] = nil,
 				["role"] = nil,
@@ -57,83 +58,34 @@ if (VRO_gui.groups == nil) then
 	end
 end
 
-VRO.CurrentRoster = nil;
-VRO.roleList = {
+vro.CurrentRoster = nil;
+vro.roleList = {
 	["tank"] = nil,
 	["heal"] = nil,
 	["melee"] = nil,
 	["range"] = nil,
 	["caster"] = nil,
 };
+
 ---------- UTIL ----------
-local function dLog(msg, lvl, force)
+function vro.dLog(msg, lvl, force)
 	force = force or false;
 	lvl = lvl or 3;
-	if (dbug and lvl <= dbuglvl) or force then
-		DEFAULT_CHAT_FRAME:AddMessage("VRO_DEBUG: "..msg, 1,1,0.5)
+	if (vro.dbug and lvl <= vro.dbuglvl) or force then
+		util.print("DEBUG_RAIDORG: "..msg)
 	end
 end
 
-local function has_value (tab, val)
-    for key, value in pairs(tab) do
-        if value == val then
-            return true
-        end
-    end
-    return false
-end
-
-function VRO.tprint(tab)
+function vro.tprint(tab)
 	for key, value in pairs(tab) do
-		dLog(key.."="..value, true);
+		if value then value = 1 else value = 0 end
+		vro.dLog(key.."="..value, 3);
 	end
 end
 
-function VRO.print(msg)
-	DEFAULT_CHAT_FRAME:AddMessage("Vanilla Raid Organiser: "..msg, 0.75,0.5,1)
+function vro.print(msg)
+	util.print("RaidOrg: "..msg)
 end
-
-local function getKeyName(tab, key)
-	for k,_ in pairs(tab) do
-		if k == key then return k end
-	end
-end
-
-local function StripTextures(frame, hide, layer)
-	for _,v in ipairs({frame:GetRegions()}) do
-		if v.SetTexture then
-			local check = true
-			if layer and v:GetDrawLayer() ~= layer then check = false end
-
-			if check then
-				if hide then
-					v:Hide()
-				else
-					v:SetTexture(nil)
-				end
-			end
-		end
-	end
-end
-
-function table.clone(org)
-	return {unpack(org)}
-end
-
--- [ strsplit ]
--- Splits a string using a delimiter.
--- 'delimiter'  [string]        characters that will be interpreted as delimiter
---                              characters (bytes) in the string.
--- 'subject'    [string]        String to split.
--- return:      [list]         s array.
-function strsplit(delimiter, subject)
-	if not subject then return nil end
-	local delimiter, fields = delimiter or ":", {}
-	local pattern = string.format("([^%s]+)", delimiter)
-	string.gsub(subject, pattern, function(c) fields[table.getn(fields)+1] = c end)
-	return fields
-  end
---------------------------
 
 --------- FRAMES ---------
 
@@ -144,7 +96,7 @@ VRO_MainFrame:SetHeight(340)
 VRO_MainFrame:SetScale(1.25)
 VRO_MainFrame:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeSize = 5});
 VRO_MainFrame:SetBackdropColor(0,0,0,0.7);
-if VRO_CONF.show then VRO_MainFrame:Show() else VRO_MainFrame:Hide() end;
+if BRH_RaidOrganizer.conf.show then VRO_MainFrame:Show() else VRO_MainFrame:Hide() end;
 
 VRO_MainFrame_Title = CreateFrame("Frame", "VRO_MainFrame_Title", VRO_MainFrame);
 VRO_MainFrame_Title:SetPoint("TOP", "VRO_MainFrame", 0, -0);
@@ -209,8 +161,8 @@ VRO_MainFrame_Save.Button:SetFrameStrata("DIALOG")
 VRO_MainFrame_Save.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 VRO_MainFrame_Save.Button:Hide();
 VRO_MainFrame_Save.Button:SetScript("OnClick", function () 
-	if VRO.saveCurrentSet(VRO_MainFrame_Save.EditBox:GetText()) then
-		VRO_gui.selected = VRO_MainFrame_Save.EditBox:GetText()
+	if vro.saveCurrentSet(VRO_MainFrame_Save.EditBox:GetText()) then
+		vro.gui.selected = VRO_MainFrame_Save.EditBox:GetText()
 		UIDropDownMenu_SetSelectedName(VRO_MainFrame_Menu_SetsDD, VRO_MainFrame_Save.EditBox:GetText(), VRO_MainFrame_Save.EditBox:GetText())
 		VRO_MainFrame_Save.EditBox:SetText("")
 		VRO_MainFrame_Save.EditBox:ClearFocus()
@@ -218,7 +170,7 @@ VRO_MainFrame_Save.Button:SetScript("OnClick", function ()
 		VRO_MainFrame_Save.EditBox:Hide()
 		VRO_MainFrame_Save.editButton:Show()
 		VRO_MainFrame_Save.delButton:Show()
-		VRO.SetEditable(false);
+		vro.SetEditable(false);
 	end
 end)
 
@@ -236,7 +188,10 @@ VRO_MainFrame_Save.editButton:SetScript("OnClick", function ()
 	VRO_MainFrame_Save.delButton:Hide()
     VRO_MainFrame_Save.Button:Show()
     VRO_MainFrame_Save.EditBox:Show()
-    VRO.SetEditable(true);
+	if (vro.gui.selected ~= "Current") then
+		VRO_MainFrame_Save.EditBox:SetText(vro.gui.selected)
+	end
+    vro.SetEditable(true);
 end)
 
 VRO_MainFrame_Save.delButton = CreateFrame("Button", "VRO_MainFrame_Save_editButton", VRO_MainFrame_Save);
@@ -249,29 +204,29 @@ VRO_MainFrame_Save.delButton:SetText("DEL")
 VRO_MainFrame_Save.delButton:SetFrameStrata("DIALOG")
 VRO_MainFrame_Save.delButton:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 VRO_MainFrame_Save.delButton:SetScript("OnClick", function () 
-    VRO.delCurrentSet();
+    vro.delCurrentSet();
 end)
 
 VRO_MainFrame_Menu_SetsDD = CreateFrame("Frame", "VRO_MainFrame_Menu_SetsDD", VRO_MainFrame, "UIDropDownMenuTemplate")
 UIDropDownMenu_Initialize(VRO_MainFrame_Menu_SetsDD, function()
 	UIDropDownMenu_AddButton({
 		text="Current",
-		checked=VRO_gui.selected == "Current",
+		checked=vro.gui.selected == "Current",
 		func = function ()
-			VRO_gui.selected = "Current"
-			VRO.loadSetInGUI("Current")
+			vro.gui.selected = "Current"
+			vro.loadSetInGUI("Current")
 			UIDropDownMenu_SetSelectedName(VRO_MainFrame_Menu_SetsDD, "Current", "Current")
 		end
 	})
-	if (VRO_SETS and type(VRO_SETS) == "table") then
-		for set,_ in pairs(VRO_SETS) do
+	if (BRH_RaidOrganizer.sets and type(BRH_RaidOrganizer.sets) == "table") then
+		for set,_ in pairs(BRH_RaidOrganizer.sets) do
 			UIDropDownMenu_AddButton({
 				text=set,
-				checked=VRO_gui.selected == set,
+				checked=vro.gui.selected == set,
 				arg1 = set,
 				func = function (set)
-					VRO_gui.selected = set
-					VRO.loadSetInGUI(set)
+					vro.gui.selected = set
+					vro.loadSetInGUI(set)
 					UIDropDownMenu_SetSelectedName(VRO_MainFrame_Menu_SetsDD, set, set)
 				end
 			})
@@ -302,8 +257,8 @@ VRO_MainFrame_Menu_Loadbutton:SetHeight(20)
 VRO_MainFrame_Menu_Loadbutton:SetFrameStrata("DIALOG")
 VRO_MainFrame_Menu_Loadbutton:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 VRO_MainFrame_Menu_Loadbutton:SetScript("OnClick", function () 
-	if (VRO_gui.selected and VRO_gui.selected ~= "Current") then
-		sortRaid(VRO_gui.selected);
+	if (vro.gui.selected and vro.gui.selected ~= "Current") then
+		vro.sortRaid(vro.gui.selected);
 	end
 end)
 
@@ -394,9 +349,9 @@ for group = 1, 8 do
 
 				-- If We get a name then we should swap, if we don't get any name then we just move the player
 				if (VRO_MainFrame_Content_group[TARgp].player[TARpl].nameBox:GetText() and VRO_MainFrame_Content_group[TARgp].player[TARpl].nameBox:GetText() ~= "") then
-					VRO.SwapByName(VRO_MainFrame_Content_group[TARgp].player[TARpl].nameBox:GetText(), movedPlayer);
+					vro.SwapByName(VRO_MainFrame_Content_group[TARgp].player[TARpl].nameBox:GetText(), movedPlayer);
 				else
-					VRO.MoveByName(movedPlayer, TARgp)
+					vro.MoveByName(movedPlayer, TARgp)
 				end
 			end
 
@@ -418,22 +373,22 @@ for group = 1, 8 do
 		VRO_MainFrame_Content_group[group].player[plyr].sign:SetScript("OnClick", function() 
 			gp = tonumber(string.sub(tostring(this:GetID()),1,1));
 			pl = tonumber(string.sub(tostring(this:GetID()),2,2));
-			if (this.texture:GetTexture() == nil and VRO.returnFreeSign()) then
-				local newSign = VRO.returnFreeSign()
-				VRO.setSign(this.texture, newSign)
-				VRO_gui.groups[gp][pl].sign = newSign
-			elseif (this.texture:GetTexture() and VRO_gui.groups[gp][pl].sign == 8) then
-				VRO_gui.groups[gp][pl].sign = 0
+			if (this.texture:GetTexture() == nil and vro.returnFreeSign()) then
+				local newSign = vro.returnFreeSign()
+				vro.setSign(this.texture, newSign)
+				vro.gui.groups[gp][pl].sign = newSign
+			elseif (this.texture:GetTexture() and vro.gui.groups[gp][pl].sign == 8) then
+				vro.gui.groups[gp][pl].sign = 0
 				this.texture:SetTexture(nil)
 			elseif (this.texture:GetTexture()) then
-				for l=VRO_gui.groups[gp][pl].sign+1,8 do
-					if VRO.nobodyHasSignInSetup(l) then
-						VRO.setSign(this.texture, l)
-						VRO_gui.groups[gp][pl].sign = l
+				for l=vro.gui.groups[gp][pl].sign+1,8 do
+					if vro.nobodyHasSignInSetup(l) then
+						vro.setSign(this.texture, l)
+						vro.gui.groups[gp][pl].sign = l
 						break;
 					end
 					if l == 8 then
-						VRO_gui.groups[gp][pl].sign = 0
+						vro.gui.groups[gp][pl].sign = 0
 						this.texture:SetTexture(nil)
 					end
 				end
@@ -457,19 +412,19 @@ for group = 1, 8 do
 			pl = tonumber(string.sub(tostring(this:GetID()),2,2));
 			if (this.texture:GetTexture() ~= nil) then
 				local className;
-				if (VRO_gui.groups[gp][pl].class == "WARRIOR") then
+				if (vro.gui.groups[gp][pl].class == "WARRIOR") then
 					className = "ROGUE"
-				elseif (VRO_gui.groups[gp][pl].class == "ROGUE") then
+				elseif (vro.gui.groups[gp][pl].class == "ROGUE") then
 					className = "MAGE"
-				elseif (VRO_gui.groups[gp][pl].class == "MAGE") then
+				elseif (vro.gui.groups[gp][pl].class == "MAGE") then
 					className = "DRUID"
-				elseif (VRO_gui.groups[gp][pl].class == "DRUID") then
+				elseif (vro.gui.groups[gp][pl].class == "DRUID") then
 					className = "HUNTER"
-				elseif (VRO_gui.groups[gp][pl].class == "HUNTER") then
+				elseif (vro.gui.groups[gp][pl].class == "HUNTER") then
 					className = "PRIEST"
-				elseif (VRO_gui.groups[gp][pl].class == "PRIEST") then
+				elseif (vro.gui.groups[gp][pl].class == "PRIEST") then
 					className = "WARLOCK"
-				elseif (VRO_gui.groups[gp][pl].class == "WARLOCK") then
+				elseif (vro.gui.groups[gp][pl].class == "WARLOCK") then
 					if (UnitFactionGroup("player") == "Alliance") then
 						className = "PALADIN"
 					else
@@ -477,26 +432,26 @@ for group = 1, 8 do
 					end
 				else 
 					this.texture:SetTexture(nil);
-					VRO_gui.groups[gp][pl].class = nil
+					vro.gui.groups[gp][pl].class = nil
 				end
 				
 				if className then
-					VRO_gui.groups[gp][pl].class = className;
+					vro.gui.groups[gp][pl].class = className;
 					this.texture:SetTexCoord(CLASS_ICON_TCOORDS[className][1],CLASS_ICON_TCOORDS[className][2],CLASS_ICON_TCOORDS[className][3],CLASS_ICON_TCOORDS[className][4])
 				end
 			else
 				
-				if (not VRO_gui.groups[gp]) then
-					VRO_gui.groups[gp] = {}
+				if (not vro.gui.groups[gp]) then
+					vro.gui.groups[gp] = {}
 				end
 	
-				if (not VRO_gui.groups[gp][pl]) then
-					VRO_gui.groups[gp][pl] = {}
+				if (not vro.gui.groups[gp][pl]) then
+					vro.gui.groups[gp][pl] = {}
 				end
 				
-				VRO_gui.groups[gp][pl].class = "WARRIOR";
+				vro.gui.groups[gp][pl].class = "WARRIOR";
 				this.texture:SetTexture("Interface\\AddOns\\VanillaRaidOrg\\classicons")
-				this.texture:SetTexCoord(CLASS_ICON_TCOORDS[VRO_gui.groups[gp][pl].class][1],CLASS_ICON_TCOORDS[VRO_gui.groups[gp][pl].class][2],CLASS_ICON_TCOORDS[VRO_gui.groups[gp][pl].class][3],CLASS_ICON_TCOORDS[VRO_gui.groups[gp][pl].class][4])
+				this.texture:SetTexCoord(CLASS_ICON_TCOORDS[vro.gui.groups[gp][pl].class][1],CLASS_ICON_TCOORDS[vro.gui.groups[gp][pl].class][2],CLASS_ICON_TCOORDS[vro.gui.groups[gp][pl].class][3],CLASS_ICON_TCOORDS[vro.gui.groups[gp][pl].class][4])
 			end
 		end)
 
@@ -514,54 +469,54 @@ for group = 1, 8 do
 			gp = tonumber(string.sub(tostring(this:GetID()),1,1));
 			pl = tonumber(string.sub(tostring(this:GetID()),2,2));
 			this:ClearFocus()
-			if not (VRO_gui.groups[gp]) then
-				VRO_gui.groups[gp] = {}
+			if not (vro.gui.groups[gp]) then
+				vro.gui.groups[gp] = {}
 			end
 
-			if not (VRO_gui.groups[gp][pl]) then
-				VRO_gui.groups[gp][pl] = {}
+			if not (vro.gui.groups[gp][pl]) then
+				vro.gui.groups[gp][pl] = {}
 			end
 
-			VRO_gui.groups[gp][pl].name = this:GetText()
+			vro.gui.groups[gp][pl].name = this:GetText()
 
-			if (VRO_Members[VRO_gui.groups[gp][pl].name]) then
-				if VRO_Members[VRO_gui.groups[gp][pl].name].role then
-					VRO_gui.groups[gp][pl].role = VRO_Members[VRO_gui.groups[gp][pl].name].role
-					VRO_MainFrame_Content_group[gp].player[pl].role:SetText(VRO_Members[VRO_gui.groups[gp][pl].name].role)
+			if (BRH_RaidOrganizer.members[vro.gui.groups[gp][pl].name]) then
+				if BRH_RaidOrganizer.members[vro.gui.groups[gp][pl].name].role then
+					vro.gui.groups[gp][pl].role = BRH_RaidOrganizer.members[vro.gui.groups[gp][pl].name].role
+					VRO_MainFrame_Content_group[gp].player[pl].role:SetText(BRH_RaidOrganizer.members[vro.gui.groups[gp][pl].name].role)
 				end
 
-				if VRO_Members[VRO_gui.groups[gp][pl].name].class then
-					VRO_gui.groups[gp][pl].class = VRO_Members[VRO_gui.groups[gp][pl].name].class
+				if BRH_RaidOrganizer.members[vro.gui.groups[gp][pl].name].class then
+					vro.gui.groups[gp][pl].class = BRH_RaidOrganizer.members[vro.gui.groups[gp][pl].name].class
 					VRO_MainFrame_Content_group[gp].player[pl].classIcon.texture:SetTexture("Interface\\AddOns\\VanillaRaidOrg\\classicons")
-					VRO_MainFrame_Content_group[gp].player[pl].classIcon.texture:SetTexCoord(CLASS_ICON_TCOORDS[VRO_gui.groups[gp][pl].class][1],CLASS_ICON_TCOORDS[VRO_gui.groups[gp][pl].class][2],CLASS_ICON_TCOORDS[VRO_gui.groups[gp][pl].class][3],CLASS_ICON_TCOORDS[VRO_gui.groups[gp][pl].class][4])
+					VRO_MainFrame_Content_group[gp].player[pl].classIcon.texture:SetTexCoord(CLASS_ICON_TCOORDS[vro.gui.groups[gp][pl].class][1],CLASS_ICON_TCOORDS[vro.gui.groups[gp][pl].class][2],CLASS_ICON_TCOORDS[vro.gui.groups[gp][pl].class][3],CLASS_ICON_TCOORDS[vro.gui.groups[gp][pl].class][4])
 				end
 			end
 		end)
 		VRO_MainFrame_Content_group[group].player[plyr].nameBox:SetScript("OnEscapePressed", function()
 			gp = tonumber(string.sub(tostring(this:GetID()),1,1));
 			pl = tonumber(string.sub(tostring(this:GetID()),2,2));
-			if not (VRO_gui.groups[gp]) then
-				VRO_gui.groups[gp] = {}
+			if not (vro.gui.groups[gp]) then
+				vro.gui.groups[gp] = {}
 			end
 
-			if not (VRO_gui.groups[gp][pl]) then
-				VRO_gui.groups[gp][pl] = {}
+			if not (vro.gui.groups[gp][pl]) then
+				vro.gui.groups[gp][pl] = {}
 			end
 			this:ClearFocus()
-			VRO_gui.groups[gp][pl].name = this:GetText()
+			vro.gui.groups[gp][pl].name = this:GetText()
 		end)
 		VRO_MainFrame_Content_group[group].player[plyr].nameBox:SetScript("OnTabPressed", function()
 			gp = tonumber(string.sub(tostring(this:GetID()),1,1));
 			pl = tonumber(string.sub(tostring(this:GetID()),2,2));
-			if not (VRO_gui.groups[gp]) then
-				VRO_gui.groups[gp] = {}
+			if not (vro.gui.groups[gp]) then
+				vro.gui.groups[gp] = {}
 			end
 
-			if not (VRO_gui.groups[gp][pl]) then
-				VRO_gui.groups[gp][pl] = {}
+			if not (vro.gui.groups[gp][pl]) then
+				vro.gui.groups[gp][pl] = {}
 			end
 			this:ClearFocus()
-			VRO_gui.groups[gp][pl].name = this:GetText()
+			vro.gui.groups[gp][pl].name = this:GetText()
 			if (pl < 5) then
 				VRO_MainFrame_Content_group[gp].player[pl+1].nameBox:SetFocus();
 			elseif (pl == 5) and (gp < 8) then
@@ -583,38 +538,38 @@ for group = 1, 8 do
 			gp = tonumber(string.sub(tostring(this:GetID()),1,1));
 			pl = tonumber(string.sub(tostring(this:GetID()),2,2));
 
-			if (not VRO_gui.groups[gp]) then
-				VRO_gui.groups[gp] = {}
+			if (not vro.gui.groups[gp]) then
+				vro.gui.groups[gp] = {}
 			end
 
-			if (not VRO_gui.groups[gp][pl]) then
-				VRO_gui.groups[gp][pl] = {}
+			if (not vro.gui.groups[gp][pl]) then
+				vro.gui.groups[gp][pl] = {}
 			end
 
-			if (VRO_gui.groups[gp][pl].role) then
-				if (VRO_gui.groups[gp][pl].role == "tank") then
+			if (vro.gui.groups[gp][pl].role) then
+				if (vro.gui.groups[gp][pl].role == "tank") then
 					this:SetText("melee")
-					VRO_gui.groups[gp][pl].role = "melee"
-				elseif (VRO_gui.groups[gp][pl].role == "melee") then
+					vro.gui.groups[gp][pl].role = "melee"
+				elseif (vro.gui.groups[gp][pl].role == "melee") then
 					this:SetText("range")
-					VRO_gui.groups[gp][pl].role = "range"
-				elseif (VRO_gui.groups[gp][pl].role == "range") then
+					vro.gui.groups[gp][pl].role = "range"
+				elseif (vro.gui.groups[gp][pl].role == "range") then
 					this:SetText("caster")
-					VRO_gui.groups[gp][pl].role = "caster"
-				elseif (VRO_gui.groups[gp][pl].role == "caster") then
+					vro.gui.groups[gp][pl].role = "caster"
+				elseif (vro.gui.groups[gp][pl].role == "caster") then
 					this:SetText("heal")
-					VRO_gui.groups[gp][pl].role = "heal"
+					vro.gui.groups[gp][pl].role = "heal"
 				else
 					this:SetText("")
-					VRO_gui.groups[gp][pl].role = nil
+					vro.gui.groups[gp][pl].role = nil
 				end
 			else
-				VRO_gui.groups[gp][pl].role = "tank"
+				vro.gui.groups[gp][pl].role = "tank"
 				this:SetText("tank")
 			end
 
-			if VRO_gui.groups[gp][pl].name and VRO_Members[VRO_gui.groups[gp][pl].name] then
-				VRO_Members[VRO_gui.groups[gp][pl].name].role = VRO_gui.groups[gp][pl].role
+			if vro.gui.groups[gp][pl].name and BRH_RaidOrganizer.members[vro.gui.groups[gp][pl].name] then
+				BRH_RaidOrganizer.members[vro.gui.groups[gp][pl].name].role = vro.gui.groups[gp][pl].role
 			end
 		end)
 	end
@@ -633,7 +588,7 @@ VRO_RaidInfo:RegisterForDrag("LeftButton");
 VRO_RaidInfo:EnableMouse();
 VRO_RaidInfo:SetScript("OnDragStart", function() this:StartMoving() end);
 VRO_RaidInfo:SetScript("OnDragStop", function() this:StopMovingOrSizing() end);
-if not VRO_CONF.riShow then
+if not BRH_RaidOrganizer.conf.riShow then
 	VRO_RaidInfo:Hide();
 else
 	VRO_RaidInfo:Show();
@@ -674,11 +629,11 @@ VRO_RaidInfo_CasterMana_number:SetTextColor(0, 1, 0, 1);
 
 
 VRO_RaidInfo:SetScript("OnUpdate", function() 
-	if not VRO.CurrentRoster then
-		VRO.CurrentRoster = VRO.getCurrentRaid()
+	if not vro.CurrentRoster then
+		vro.CurrentRoster = vro.getCurrentRaid()
 	end
 	--- Healers Mana
-	local healers = VRO.GetRoleList("heal")
+	local healers = vro.GetRoleList("heal")
 	if healers then
 		local healersMana, healersMaxMana = 0, 0;
 		for _,datas in pairs(healers) do
@@ -695,8 +650,8 @@ VRO_RaidInfo:SetScript("OnUpdate", function()
 		VRO_RaidInfo_HealMana_number:SetTextColor(0, 1, 0, 1);
 	end
 	--- Casters Mana
-	local casters = VRO.GetRoleList("caster")
-	local range = VRO.GetRoleList("range")
+	local casters = vro.GetRoleList("caster")
+	local range = vro.GetRoleList("range")
 
 	local castersMana, castersMaxMana = 0, 0;
 
@@ -735,6 +690,7 @@ VRO_RaidInfo:SetScript("OnUpdate", function()
 		VRO_RaidInfo_RaidHP_number:SetTextColor((1-(raidHealth/raidMaxHealth)), (raidHealth/raidMaxHealth), 0, 1);
 	end
 end)
+
 VRO_RaidBuffs = {}
 VRO_RaidBuffs.main = CreateFrame("Frame", "VRO_RaidBuffs_main")
 VRO_RaidBuffs.main:ClearAllPoints();
@@ -749,7 +705,7 @@ VRO_RaidBuffs.main:RegisterForDrag("LeftButton");
 VRO_RaidBuffs.main:EnableMouse();
 VRO_RaidBuffs.main:SetScript("OnDragStart", function() this:StartMoving() end);
 VRO_RaidBuffs.main:SetScript("OnDragStop", function() this:StopMovingOrSizing() end);
-if not VRO_CONF.riShow then
+if not BRH_RaidOrganizer.conf.riShow then
 	VRO_RaidBuffs.main:Hide();
 else
 	VRO_RaidBuffs.main:Show();
@@ -758,29 +714,30 @@ end
 VRO_MainFrame:RegisterEvent("CHAT_MSG_ADDON");
 VRO_MainFrame:RegisterEvent("RAID_ROSTER_UPDATE");
 VRO_MainFrame:SetScript("OnEvent", function() 
-	if (event == "CHAT_MSG_ADDON" and arg1 == VRO.syncPrefix) then
-		VRO.HandleAddonMSG(arg4, arg2);
+	if (event == "CHAT_MSG_ADDON" and arg1 == vro.syncPrefix) then
+		vro.HandleAddonMSG(arg4, arg2);
 	elseif (event == "RAID_ROSTER_UPDATE") then
-		for k,_ in pairs(VRO.roleList) do
-			VRO.GetRoleList(k);
+		for k,_ in pairs(vro.roleList) do
+			vro.GetRoleList(k);
 		end
 		
-		if VRO_gui.selected == "Current" then
-			VRO.loadSetInGUI("Current")
+		if vro.gui.selected == "Current" then
+			vro.loadSetInGUI("Current")
 		end
     end
  end)
+
 -----FUNCTIONS-------
 
-function VRO.addonCom(comType, content)
-	SendAddonMessage(VRO.syncPrefix, comType..";;;"..content, "RAID")
+function vro.addonCom(comType, content)
+	SendAddonMessage(vro.syncPrefix, comType..";;;"..content, "RAID")
 end
 
-function VRO.HandleAddonMSG(sender, data)
+function vro.HandleAddonMSG(sender, data)
 	-- check if we accept the call
-	if not VRO.PlayerIsPromoted(sender) or UnitName("Player") == sender or not IsRaidLeader() then return end
+	if not util.PlayerIsPromoted(sender) or UnitName("Player") == sender or not IsRaidLeader() then return end
 	-- separate the type of command of it's datas
-	local split = strsplit(";;;", data)
+	local split = util.strsplit(";;;", data)
 	local cmd = split[1]
 	local datas = split[2]
 
@@ -790,24 +747,24 @@ function VRO.HandleAddonMSG(sender, data)
 		-- We are gonna recieve the comp with one msg by player
 		-- message looks like this => COMPNAME:GROUP:PLAYERID:SIGN:CLASS:ROLE:NAME
 		-- we split the message again to separate every info
-		local dataSplit =  strsplit(":", datas)
+		local dataSplit =  util.strsplit(":", datas)
 		local compName = dataSplit[1]
 		local group = dataSplit[2]
 		local player = dataSplit[3]
-		local sign = VRO.nilIsNil(dataSplit[4])
-		local class = VRO.nilIsNil(dataSplit[5])
-		local role = VRO.nilIsNil(dataSplit[6])
-		local name = VRO.nilIsNil(dataSplit[7])
+		local sign = vro.nilIsNil(dataSplit[4])
+		local class = vro.nilIsNil(dataSplit[5])
+		local role = vro.nilIsNil(dataSplit[6])
+		local name = vro.nilIsNil(dataSplit[7])
 
-		if not VRO_SETS[compName] then
-			VRO_SETS[compName] = {}
+		if not BRH_RaidOrganizer.sets[compName] then
+			BRH_RaidOrganizer.sets[compName] = {}
 		end
 
-		if not VRO_SETS[compName][group] then
-			VRO_SETS[compName][group] = {}
+		if not BRH_RaidOrganizer.sets[compName][group] then
+			BRH_RaidOrganizer.sets[compName][group] = {}
 		end
 
-		VRO_SETS[compName][group][player] = {
+		BRH_RaidOrganizer.sets[compName][group][player] = {
 			["sign"] = sign,
 			["class"] = class,
 			["role"] = role,
@@ -816,7 +773,7 @@ function VRO.HandleAddonMSG(sender, data)
 	end
 end
 
-function VRO.SetEditable(editable)
+function vro.SetEditable(editable)
     --editable = editable or true;
 
     for group=1,8 do
@@ -837,34 +794,34 @@ function VRO.SetEditable(editable)
         end
     end
 end
-VRO.SetEditable(false)
+vro.SetEditable(false)
 
-function VRO.GetRoleList(thisRole, reset)
+function vro.GetRoleList(thisRole, reset)
 
-	if VRO.roleList[thisRole] and not reset then
-		return VRO.roleList[thisRole]
+	if vro.roleList[thisRole] and not reset then
+		return vro.roleList[thisRole]
 	end
 
 	if (reset) then
-		for k in pairs(VRO.roleList[thisRole]) do
-			VRO.roleList[thisRole][k] = nil
+		for k in pairs(vro.roleList[thisRole]) do
+			vro.roleList[thisRole][k] = nil
 		end
 	end
 
-	if not VRO.CurrentRoster then
-		VRO.CurrentRoster = VRO.getCurrentRaid()
+	if not vro.CurrentRoster then
+		vro.CurrentRoster = vro.getCurrentRaid()
 	end
 
-	if not VRO.roleList[thisRole] then
-		VRO.roleList[thisRole] = {};
+	if not vro.roleList[thisRole] then
+		vro.roleList[thisRole] = {};
 	end
 
-	if VRO.CurrentRoster then
-		for groupe,members in pairs(VRO.CurrentRoster) do	
+	if vro.CurrentRoster then
+		for groupe,members in pairs(vro.CurrentRoster) do	
 			for member,data in pairs(members) do
 				if type(data) == "table" then
 				 	if data.role == thisRole then
-						tinsert(VRO.roleList[thisRole], {
+						tinsert(vro.roleList[thisRole], {
 							["name"] = data.name,
 							["raidIndex"] = data.raidIndex
 						});
@@ -872,12 +829,12 @@ function VRO.GetRoleList(thisRole, reset)
 				end
 			end
 		end
-		return VRO.roleList[thisRole];
+		return vro.roleList[thisRole];
 	end
 	return nil;
 end
 
-function VRO.nilIsNil(val)
+function vro.nilIsNil(val)
 	if val == "nil" then
 		return nil
 	else
@@ -885,18 +842,8 @@ function VRO.nilIsNil(val)
 	end
 end
 
-function VRO.PlayerIsPromoted(name)
-	if not name then return false end
-
-	for raidIndex=1, MAX_RAID_MEMBERS do
-		name, rank = GetRaidRosterInfo(raidIndex);
-		if (name and rank and rank > 0 ) then return true end
-	end
-	return false;
-end
-
-function VRO.RemoveByName(pName)
-	local raid = VRO.getCurrentRaid()
+function vro.RemoveByName(pName)
+	local raid = vro.getCurrentRaid()
    
     for group,members in pairs(raid) do
         for member,datas in pairs(members) do
@@ -909,9 +856,9 @@ function VRO.RemoveByName(pName)
 	end
 end
 
-function VRO.SwapByName(name1, name2)
+function vro.SwapByName(name1, name2)
     local idx1, idx2;
-    for group,members in pairs(VRO.getCurrentRaid()) do
+    for group,members in pairs(vro.getCurrentRaid()) do
         for member,datas in pairs(members) do
 			if type(datas) == "table" then
 				if strlow(datas.name) == strlow(name1) then idx1 = datas.raidIndex
@@ -926,8 +873,8 @@ function VRO.SwapByName(name1, name2)
 	end
 end
 
-function VRO.MoveByName(pName, group)
-    local raid = VRO.getCurrentRaid()
+function vro.MoveByName(pName, group)
+    local raid = vro.getCurrentRaid()
     if raid[group] and raid[group].full then return end
    
     for group,members in pairs(raid) do
@@ -945,12 +892,12 @@ function VRO.MoveByName(pName, group)
 	end
 end
 
-function VRO.WypeGui()
-	if (VRO_gui.groups) then
+function vro.WypeGui()
+	if (vro.gui.groups) then
 		for g = 1,8 do
-			VRO_gui.groups[g] = {}
+			vro.gui.groups[g] = {}
 			for p = 1,5 do
-				VRO_gui.groups[g][p] = {
+				vro.gui.groups[g][p] = {
 					["sign"] = 0,
 					["class"] = nil,
 					["role"] = nil,
@@ -967,27 +914,27 @@ function VRO.WypeGui()
 	
 end
 
-function VRO.nobodyHasSignInSetup(signID)
+function vro.nobodyHasSignInSetup(signID)
 	for g=1,8 do
-		if VRO_gui.groups[g] then
+		if vro.gui.groups[g] then
 			for p=1,5 do
-				if VRO_gui.groups[g][p] and VRO_gui.groups[g][p].sign and VRO_gui.groups[g][p].sign == signID then return false end
+				if vro.gui.groups[g][p] and vro.gui.groups[g][p].sign and vro.gui.groups[g][p].sign == signID then return false end
 			end
 		end
 	end
 	return true;
 end
 
-function VRO.returnFreeSign()
+function vro.returnFreeSign()
 	for s=1,8 do
-		if (VRO.nobodyHasSignInSetup(s)) then
+		if (vro.nobodyHasSignInSetup(s)) then
 			return s;
 		end
 	end
 	return nil;
 end
 
-function VRO.setSign(texture, signID)
+function vro.setSign(texture, signID)
 	if (signID and signID > 0 and signID < 9) then
 		texture:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcons")
 		if (signID == 1) then texture:SetTexCoord(0,0.25,0,0.25)
@@ -1002,25 +949,25 @@ function VRO.setSign(texture, signID)
 	end
 end
 
-function VRO.loadSetInGUI(set)
-	VRO.WypeGui();
+function vro.loadSetInGUI(set)
+	vro.WypeGui();
 	set = set or "Current";
 
-	dLog(set, 3)
+	vro.dLog(set, 3)
 	if set == "Current" then
-		VRO_gui.groups = VRO.getCurrentRaid()
+		vro.gui.groups = vro.getCurrentRaid()
 	else
-		VRO_gui.groups = {}
+		vro.gui.groups = {}
 		for g=1,8 do
-			if (VRO_SETS[set][g]) then
-				VRO_gui.groups[g] = {}
+			if (BRH_RaidOrganizer.sets[set][g]) then
+				vro.gui.groups[g] = {}
 				for p=1,5 do
-					if (VRO_SETS[set][g][p]) then
-						VRO_gui.groups[g][p] = {}
-						VRO_gui.groups[g][p].sign = VRO_SETS[set][g][p].sign
-						VRO_gui.groups[g][p].class = VRO_SETS[set][g][p].class
-						VRO_gui.groups[g][p].name = VRO_SETS[set][g][p].name
-						VRO_gui.groups[g][p].role = VRO_SETS[set][g][p].role
+					if (BRH_RaidOrganizer.sets[set][g][p]) then
+						vro.gui.groups[g][p] = {}
+						vro.gui.groups[g][p].sign = BRH_RaidOrganizer.sets[set][g][p].sign
+						vro.gui.groups[g][p].class = BRH_RaidOrganizer.sets[set][g][p].class
+						vro.gui.groups[g][p].name = BRH_RaidOrganizer.sets[set][g][p].name
+						vro.gui.groups[g][p].role = BRH_RaidOrganizer.sets[set][g][p].role
 					end
 				end
 			end
@@ -1029,22 +976,22 @@ function VRO.loadSetInGUI(set)
 
 	for group=1,8 do
 		for player=1,5 do
-			if (VRO_gui.groups[group] and VRO_gui.groups[group][player] and type(VRO_gui.groups[group][player]) == "table") then
-				if VRO_gui.groups[group][player].sign then
-					VRO.setSign(VRO_MainFrame_Content_group[group].player[player].sign.texture, VRO_gui.groups[group][player].sign)
+			if (vro.gui.groups[group] and vro.gui.groups[group][player] and type(vro.gui.groups[group][player]) == "table") then
+				if vro.gui.groups[group][player].sign then
+					vro.setSign(VRO_MainFrame_Content_group[group].player[player].sign.texture, vro.gui.groups[group][player].sign)
 				end
 
-				if VRO_gui.groups[group][player].class then
+				if vro.gui.groups[group][player].class then
 					VRO_MainFrame_Content_group[group].player[player].classIcon.texture:SetTexture("Interface\\AddOns\\VanillaRaidOrg\\classicons")
-					VRO_MainFrame_Content_group[group].player[player].classIcon.texture:SetTexCoord(CLASS_ICON_TCOORDS[VRO_gui.groups[group][player].class][1],CLASS_ICON_TCOORDS[VRO_gui.groups[group][player].class][2],CLASS_ICON_TCOORDS[VRO_gui.groups[group][player].class][3],CLASS_ICON_TCOORDS[VRO_gui.groups[group][player].class][4])
+					VRO_MainFrame_Content_group[group].player[player].classIcon.texture:SetTexCoord(CLASS_ICON_TCOORDS[vro.gui.groups[group][player].class][1],CLASS_ICON_TCOORDS[vro.gui.groups[group][player].class][2],CLASS_ICON_TCOORDS[vro.gui.groups[group][player].class][3],CLASS_ICON_TCOORDS[vro.gui.groups[group][player].class][4])
 				end
 
-				if VRO_gui.groups[group][player].name then
-					VRO_MainFrame_Content_group[group].player[player].nameBox:SetText(VRO_gui.groups[group][player].name)
+				if vro.gui.groups[group][player].name then
+					VRO_MainFrame_Content_group[group].player[player].nameBox:SetText(vro.gui.groups[group][player].name)
 				end
 
-				if VRO_gui.groups[group][player].role then
-					VRO_MainFrame_Content_group[group].player[player].role:SetText(VRO_gui.groups[group][player].role)
+				if vro.gui.groups[group][player].role then
+					VRO_MainFrame_Content_group[group].player[player].role:SetText(vro.gui.groups[group][player].role)
 				end
 			end
 			if set == "Current" and (IsRaidLeader() or IsRaidOfficer()) then
@@ -1067,11 +1014,11 @@ function VRO.loadSetInGUI(set)
 	VRO_MainFrame_Save.EditBox:Hide()
 	VRO_MainFrame_Save.editButton:Show()
 	VRO_MainFrame_Save.delButton:Show()
-	VRO.SetEditable(false);
+	vro.SetEditable(false);
 	
 end
 --------------------------
-function VRO.getCurrentRaid()
+function vro.getCurrentRaid()
     local roster = {};
     
     local groupIndex = {
@@ -1085,13 +1032,14 @@ function VRO.getCurrentRaid()
         [8] = 1
 	}
 	
-	if VRO_Members == nil  then
-		VRO_Members = {}
+	if BRH_RaidOrganizer.members == nil  then
+		BRH_RaidOrganizer.members = {}
 	end
 
     for raidIndex=1, MAX_RAID_MEMBERS do
     	name, rank,subgroup, _, _, class, _, _, _ = GetRaidRosterInfo(raidIndex);
 		if name and rank and subgroup and class then 
+			vro.assignedPlayers[name] = false;
 			if not roster[subgroup] then
 				roster[subgroup] = {}
 			end
@@ -1104,13 +1052,13 @@ function VRO.getCurrentRaid()
 					["sign"] = GetRaidTargetIndex("raid"..raidIndex),
 				}
 
-			dLog(name.."("..class..") -> "..subgroup.."("..groupIndex[subgroup]..") = "..raidIndex, 2);
+			vro.dLog(name.."("..class..") -> "..subgroup.."("..groupIndex[subgroup]..") = "..raidIndex, 2);
 			
 			-- role assignement
 			-- tank, heal, melee, caster, not sure if I should put equi/feral and co...
-			if (VRO_Members and VRO_Members[name] ~= nil) then
+			if (BRH_RaidOrganizer.members and BRH_RaidOrganizer.members[name] ~= nil) then
 				-- take last assigned role, usualy doesn't change
-				roster[subgroup][groupIndex[subgroup]].role = VRO_Members[name].role
+				roster[subgroup][groupIndex[subgroup]].role = BRH_RaidOrganizer.members[name].role
 			else
 				-- We are assuming basic roles
 				if class == "PRIEST" or class == "PALADIN" or class == "DRUID" or class == "SHAMAN" then
@@ -1123,7 +1071,7 @@ function VRO.getCurrentRaid()
 					roster[subgroup][groupIndex[subgroup]].role = "caster";
 				end
 
-				VRO_Members[name] = {
+				BRH_RaidOrganizer.members[name] = {
 					["class"] = class,
 					["role"] = roster[subgroup][groupIndex[subgroup]].role,
 				}
@@ -1132,190 +1080,228 @@ function VRO.getCurrentRaid()
 			groupIndex[subgroup] = groupIndex[subgroup] +1;
 			if groupIndex[subgroup] == 6 then
 				roster[subgroup].full = true;
-				dLog(strfor("%d is full", subgroup));
+				vro.dLog(strfor("%d is full", subgroup));
 			end
 		end
     end
     return roster;
 end
 
-local function getPlayerByName(roster, pName)
-	dLog("getPlayerByName : "..pName)
+function vro.getPlayerByName(roster, pName)
+	vro.dLog("vro.getPlayerByName : "..pName)
 	for group,members in pairs(roster) do 
 		for member,datas in pairs(members) do
 			if type(datas) == "table" then
 				if strlow(datas.name) == strlow(pName) then
-					dLog(strfor("%s found as raidIndex %d", pName, datas.raidIndex))
+					vro.dLog(strfor("%s found as raidIndex %d", pName, datas.raidIndex))
 					return datas.raidIndex
 				end
 			end
 		end
 
 	end
-	dLog(strfor("%s was not found", pName))
+	vro.dLog(strfor("%s was not found", pName))
 	return nil
 end
 
-local function getUnAssignedPlayerInGroup(group)
-	dLog("getUnassignedPlayerInGroup")
-	for member, datas in pairs(VRO.CurrentRoster[group]) do
+function vro.getUnAssignedPlayerInGroup(group)
+	vro.dLog("getUnassignedPlayerInGroup")
+	for member, datas in pairs(vro.CurrentRoster[group]) do
 		if type(datas) == "table" then
-			if datas.raidIndex and not (has_value(assignatedPlayers, datas.raidIndex)) then
-				dLog(strfor("%s(%d) not assigned",datas.name, datas.raidIndex))
+			if datas.raidIndex and not vro.assignedPlayers[data.name] then
+				vro.dLog(strfor("%s(%d) not assigned",datas.name, datas.raidIndex))
 				return datas.raidIndex; 
 			end
 		end
 	end
-	dLog("no unassigned player in group, skip")
+	vro.dLog("no unassigned player in group, skip")
 	return nil;
 end
 
-local function getUAPlayerWithRoleAndClass(role, class, raid)
+function vro.getUAPlayerWithRoleAndClass(role, class, raid)
+
 	local correctRoleidx = nil;
 	for groupe,members in pairs(raid) do
 		for member,data in pairs(members) do
 			if type(data) == "table" then
-				if not (has_value(assignatedPlayers, data.raidIndex)) and data.role == role then 
+				if not vro.assignedPlayers[data.name] and data.role == role then 
 					if class and data.class == class then
 						-- if he is not assignated, has the correct role and the correct class we can stop here
-						dLog(strfor("%s(%d) is not assigned and has correct role and class", data.name, data.raidIndex))
+						vro.dLog(strfor("%s(%d) is not assigned and has correct role and class", data.name, data.raidIndex))
 						return data.raidIndex 
 					else
 						-- else we can just store his index if there is none storred, so we can return it if we found nobody with the correct class with that role that is free
 						correctRoleidx = nil and data.raidIndex or correctRoleidx
-						dLog(strfor("%s(%d) has the correct role but not class so we store it", data.name, data.raidIndex))
+						vro.dLog(strfor("%s(%d) has the correct role but not class so we store it", data.name, data.raidIndex))
 					end
 				end
 			end
 		end
 	end
 	if (correctRoleIdx ~= nil) then
-		dLog(strfor("returning %d as correct role ( but not correct class )"));
+		vro.dLog(strfor("returning %d as correct role ( but not correct class )"));
 	else
-		dLog("no unassigned player with role and class");
+		vro.dLog("no unassigned player with role and class");
 	end
 	return correctRoleidx;
 end
 
-local function assignPlayer(player, currGroup, full)
-	dLog(strfor("assignPlayer %d", player))
+function vro.assignPlayer(playerIdx, currGroup, full)
+	vro.dLog(strfor("vro.assignPlayer %d", playerIdx))
 	-- the player normally assigned is in the raid, we now want to know his group
-	local _, _, thisPlayerGroup = GetRaidRosterInfo(player);
+	local pName, _, thisPlayerGroup = GetRaidRosterInfo(playerIdx);
 	if thisPlayerGroup == currGroup then
-		dLog("Player already in the group")
+		vro.dLog("Player already in the group")
 		-- yay he is already here, we assign him and pass to the next
-		tinsert(assignatedPlayers, player);
-		--tprint(assignatedPlayers);
-		return player;
+		vro.assignedPlayers[pName] = true;
+		vro.tprint(vro.assignedPlayers);
+		return playerIdx;
 	else
-		dLog("Player not in the group")
+		vro.dLog("Player not in the group")
 		-- he is not in this group so if the group is full we need to find a player in this group that we can swap out
 		if (full) then
-			local UAplayer = getUnAssignedPlayerInGroup(currGroup)
+			local UAplayer = vro.getUnAssignedPlayerInGroup(currGroup)
 			if UAplayer then
 				-- we got one so here we go and we can assign him
-				dLog(strfor("swapping %d with %d", UAplayer, player))
-				SwapRaidSubgroup(UAplayer, player)
-				tinsert(assignatedPlayers, player);
-				--tprint(assignatedPlayers);
-				return player;
+				vro.dLog(strfor("swapping %d with %d", UAplayer, playerIdx))
+				SwapRaidSubgroup(UAplayer, playerIdx)
+				vro.assignedPlayers[pName] = true;
+				vro.tprint(vro.assignedPlayers);
+				return playerIdx;
 			end
 		else
 			-- not full, just get him in here
-			dLog(strfor("getting %d into %d", player, currGroup))
-			SetRaidSubgroup(player, currGroup)
-			tinsert(assignatedPlayers, player);
-			--tprint(assignatedPlayers);
-			return player;
+			vro.dLog(strfor("getting %d into %d", playerIdx, currGroup))
+			SetRaidSubgroup(playerIdx, currGroup)
+			vro.assignedPlayers[pName] = true;
+			vro.tprint(vro.assignedPlayers);
+			return playerIdx;
 		end
-
 	end
-	dLog("Nobody to swap, skip")
+	vro.dLog("Nobody to swap, skip")
 	return nil
 end
 
-function sortRaid(org)
-		-- reset VRO.CurrentRoster
-		for k in pairs(VRO.CurrentRoster) do
-			VRO.CurrentRoster[k] = nil
+vro.sortRaidVar = {}
+vro.sortRaidVar.tick = 0.2
+vro.sortRaidVar.nextTick = GetTime() + vro.sortRaidVar.tick
+vro.sortRaidVar.currRost = {}
+vro.sortRaidVar.org = nil
+vro.sortRaidVar.group = nil
+vro.sortRaidVar.ongoing = false;
+
+function vro.sortRaid(org)
+	vro.dLog("sorting raid with org ", 3)
+
+	-- reset vro.CurrentRoster
+	if (type(vro.CurrentRoster) == "table") then
+		for k in pairs(vro.CurrentRoster) do
+			vro.CurrentRoster[k] = nil
 		end
-		VRO.CurrentRoster = VRO.getCurrentRaid()
+	end
+	vro.CurrentRoster = vro.getCurrentRaid()
+	vro.sortRaidVar.currRost = vro.CurrentRoster
 
-		-- empty the assignated players list
-		for k in pairs (assignatedPlayers) do
-			assignatedPlayers[k] = nil
-		end
+	-- empty the assignated players list
+	for pName, assigned in pairs (vro.assignedPlayers) do
+		assigned = false;
+	end
 
-		-- remove every signs
-		for i=1,40 do SetRaidTarget("raid"..i, 9) end
+	-- remove every signs
+	for i=1,40 do SetRaidTarget("raid"..i, 9) end
 
-		for group,members in pairs(VRO_SETS[org]) do
-			for member,datas in pairs(members) do
-				-- if a name is precised we look into the raid if the player is there
-				if type(datas) == "table" then
-					if (datas.name) then
-						local thisPlayer = getPlayerByName(VRO.CurrentRoster, datas.name);
-						if (thisPlayer) then 
-							local full = VRO.CurrentRoster[group] and VRO.CurrentRoster[group].full or fasle;
-							datas.raidIndex = assignPlayer(thisPlayer, group, full)
-						else
-							-- the player is not here so we are looking for another player with the role and class (if precised) we are looking for
-							thisPlayer = getUAPlayerWithRoleAndClass(datas.role, datas.class, VRO.CurrentRoster)
-							if (thisPlayer) then
-								local full = VRO.CurrentRoster[group] and VRO.CurrentRoster[group].full or fasle;
-							datas.raidIndex = assignPlayer(thisPlayer, group, full)
-							end
-						end
-					else
-						-- no name assigned so we use the role and class
-					
-						local thisPlayer = getUAPlayerWithRoleAndClass(datas.role, datas.class, VRO.CurrentRoster)
-						if (thisPlayer) then
-							local full = VRO.CurrentRoster[group] and VRO.CurrentRoster[group].full or fasle;
-							datas.raidIndex = assignPlayer(thisPlayer, group, full)
-						end
-					end
+	vro.sortRaidVar.org = org
+	vro.sortRaidVar.group = 1
+	vro.sortRaidVar.ongoing = true
+	vro.sortRaidVar.nextTick = GetTime() + vro.sortRaidVar.tick
+
+	vro.CurrentSetup = org;
+	VRO_MainFrame_Menu_CurrSetup_Text:SetText(org)
+end
+
+function vro.sortGroup(group)
+	vro.dLog("sorting group "..group, 3)
+
+	if (type(BRH_RaidOrganizer.sets[vro.sortRaidVar.org][group]) == "table") then
+		for member,datas in pairs(BRH_RaidOrganizer.sets[vro.sortRaidVar.org][group]) do
+			if type(datas) == "table" then
+				thisPlayer = nil
+				-- we got a player name, we use it
+				if (datas.name) then
+					vro.dLog("looking for "..datas.name, 3)
+					thisPlayer = vro.getPlayerByName(vro.CurrentRoster, datas.name);
+				end
+
+				-- no name assigned or the player is not here so we are looking for another player with the role and class (if precised) we are looking for
+				if (not thisPlayer) then
+					thisPlayer = vro.getUAPlayerWithRoleAndClass(datas.role, datas.class, vro.CurrentRoster)
+				end
+				
+				-- still nobody ? skip, elle we got it
+				if (thisPlayer) then
+					local full = vro.CurrentRoster[group] and vro.CurrentRoster[group].full or fasle;
+					datas.raidIndex = vro.assignPlayer(thisPlayer, group, full)
 
 					if datas.role == "tank" and datas.name then
 						PromoteToAssistant(datas.name);
 					end
-	
+
 					if (datas.sign and datas.raidIndex) then
 						SetRaidTarget("raid"..datas.raidIndex, datas.sign) 
 					end
 				end
+
+
 			end
 		end
-	CurrentSetup = org;
-	VRO_MainFrame_Menu_CurrSetup_Text:SetText(org)
+	end
+
+	if (group < 8) then
+		vro.sortRaidVar.group = group + 1
+	else
+		vro.sortRaidVar.org = nil
+		vro.sortRaidVar.group = nil
+		vro.sortRaidVar.ongoing = false;
+	end
+	vro.sortRaidVar.nextTick = GetTime() + vro.sortRaidVar.tick
 end
 
-function VRO.delCurrentSet()
-	if VRO_gui.selected == "Current" then return end
+VRO_MainFrame:SetScript("OnUpdate", function() 
+	if (vro.sortRaidVar.ongoing) then
+		if (vro.sortRaidVar.nextTick <= GetTime()) then
+			vro.sortGroup(vro.sortRaidVar.group)
+		end
+	end
+end)
 
-	VRO_SETS[VRO_gui.selected] = nil;
-	VRO.WypeGui();
+function vro.delCurrentSet()
+	if vro.gui.selected == "Current" then return end
+
+	BRH_RaidOrganizer.sets[vro.gui.selected] = nil;
+	vro.WypeGui();
 	UIDropDownMenu_SetSelectedName(VRO_MainFrame_Menu_SetsDD, nil, nil)
 end
 
-function VRO.saveCurrentSet(setName)
+function vro.saveCurrentSet(setName)
+	if (not setName or setName == "") then return false end
+
 	local newOrg = {}
-	if VRO_SETS == nil then
-		VRO_SETS = {}
+	if BRH_RaidOrganizer.sets == nil then
+		BRH_RaidOrganizer.sets = {}
 	end
 
-	if (VRO_gui.groups) then
-		VRO_SETS[setName] = {}
+	if (vro.gui.groups) then
+		BRH_RaidOrganizer.sets[setName] = {}
 		for g =1,8 do
-			if VRO_gui.groups[g] then
-				VRO_SETS[setName][g] = {}
+			if vro.gui.groups[g] then
+				BRH_RaidOrganizer.sets[setName][g] = {}
 				for p=1,5 do
-					if VRO_gui.groups[g][p] then
-						VRO_SETS[setName][g][p] = {}
-						VRO_SETS[setName][g][p].sign = VRO_gui.groups[g][p].sign or nil
-						VRO_SETS[setName][g][p].class = VRO_gui.groups[g][p].class or nil
-						VRO_SETS[setName][g][p].name = VRO_gui.groups[g][p].name or nil
-						VRO_SETS[setName][g][p].role = VRO_gui.groups[g][p].role or nil
+					if vro.gui.groups[g][p] then
+						BRH_RaidOrganizer.sets[setName][g][p] = {}
+						BRH_RaidOrganizer.sets[setName][g][p].sign = vro.gui.groups[g][p].sign or nil
+						BRH_RaidOrganizer.sets[setName][g][p].class = vro.gui.groups[g][p].class or nil
+						BRH_RaidOrganizer.sets[setName][g][p].name = vro.gui.groups[g][p].name or nil
+						BRH_RaidOrganizer.sets[setName][g][p].role = vro.gui.groups[g][p].role or nil
 					end
 				end
 			end
@@ -1328,8 +1314,8 @@ function VRO.saveCurrentSet(setName)
 end
 
 --COMPNAME:GROUP:PLAYERID:SIGN:CLASS:ROLE:NAME
-function VRO.SendComp(setName)
-	for group,members in pairs(VRO_SETS[setName]) do
+function vro.SendComp(setName)
+	for group,members in pairs(BRH_RaidOrganizer.sets[setName]) do
 		for member,datas in pairs(members) do
 			if type(datas) == "table" then
 				local sign = datas.sign or "nil";
@@ -1337,65 +1323,65 @@ function VRO.SendComp(setName)
 				local role = datas.role or "nil"
 				local name = datas.name or "nil"
 				local pDATA = setName..":"..group..":"..member..":"..sign..":"..class..":"..role..":"..name;
-				VRO.addonCom("sendComp",pDATA)
+				vro.addonCom("sendComp",pDATA)
 			end
 		end
 	end
 end
 
-function VRO.GetHealForLoatheb(force)
+function vro.GetHealForLoatheb(force)
     force = force or false;
-	if not VRO.Healerstring or force then 
-    	local healers = VRO.GetRoleList("heal")
+	if not vro.Healerstring or force then 
+    	local healers = vro.GetRoleList("heal")
 	    
-	    VRO.Healerstring = ""
+	    vro.Healerstring = ""
     	for idx,datas in pairs(healers) do
-    		VRO.Healerstring = VRO.Healerstring..datas.name
+    		vro.Healerstring = vro.Healerstring..datas.name
     		if healers[idx+1] then
-    			VRO.Healerstring = VRO.Healerstring.." => "
+    			vro.Healerstring = vro.Healerstring.." => "
     		end
     	end
 	end
 	
     if IsRaidLeader() or IsRaidOfficer() then
-    	SendChatMessage(VRO.Healerstring, "RAID_WARNING");
+    	SendChatMessage(vro.Healerstring, "RAID_WARNING");
   	else
-    	SendChatMessage(VRO.Healerstring, "RAID");
+    	SendChatMessage(vro.Healerstring, "RAID");
 	end
 end
 
 SLASH_VRO1 = "/rc"
 SLASH_VRO2 = "/vro"
 
-local function cmdHandle(msg)
-	strsplit(" ", msg)
-	local cmd = strsplit(" ", msg)[1]
-	local arg = strsplit(" ", msg)[2]
+function vro.cmdHandle(msg)
+	util.strsplit(" ", msg)
+	local cmd = util.strsplit(" ", msg)[1]
+	local arg = util.strsplit(" ", msg)[2]
 	if cmd then
 		if (strlow(cmd) == "promote") then
 			PromoteToAssistant(arg)
 		elseif (strlow(cmd) == "kick") then
-			VRO.RemoveByName(arg)
+			vro.RemoveByName(arg)
 		elseif (strlow(cmd) == "loatheb") then
-			VRO.GetHealForLoatheb()
+			vro.GetHealForLoatheb()
 		elseif (strlow(cmd) == "show") then
-			VRO_CONF.show = true;
+			BRH_RaidOrganizer.conf.show = true;
 			VRO_MainFrame:Show();
 		elseif (strlow(cmd) == "hide") then
-			VRO_CONF.show = false;
+			BRH_RaidOrganizer.conf.show = false;
 			VRO_MainFrame:Hide();	
 		elseif (strlow(cmd) == "raidinfos") then
-			if not VRO_CONF.riShow then
-				VRO_CONF.riShow = true
+			if not BRH_RaidOrganizer.conf.riShow then
+				BRH_RaidOrganizer.conf.riShow = true
 				VRO_RaidInfo:Show();
 			else 
-				VRO_CONF.riShow = false
+				BRH_RaidOrganizer.conf.riShow = false
 				VRO_RaidInfo:Hide();
 			end
 		end
 	else
-		VRO.print("Commands :\n/vro promote NAME\n/vro kick NAME\n/vro loatheb\n/vro show\n/vro hide\n/vro raidinfos");
+		vro.print("Commands :\n/vro promote NAME\n/vro kick NAME\n/vro loatheb\n/vro show\n/vro hide\n/vro raidinfos");
 	end
 end
 
-SlashCmdList["VRO"] = cmdHandle
+SlashCmdList["VRO"] = vro.cmdHandle

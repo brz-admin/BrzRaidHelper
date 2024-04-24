@@ -1,8 +1,8 @@
 ## Interface: 11200
 ## Title: |cff64fc8aBrz|cffffffffraid|cffb0fc64Helper
-## Version: 200
+## Version: 220
 ## Notes: Multiple Useful Macros for Raids
-## SavedVariablesPerCharacter: BRH_TrackedSpells, BRH_CDTrackerConfig, BRH_spellsToTrack, BRH_SpellCastCount, BRH_config
+## SavedVariablesPerCharacter: BRH_TrackedSpells, BRH_CDTrackerConfig, BRH_spellsToTrack, BRH_config, BRH_RaidOrganizer
 
 Libs\AceLibrary\AceLibrary.lua
 Libs\AceLocale-2.2\AceLocale-2.2.lua
@@ -18,3 +18,4 @@ IgniteTracker.lua
 cdTracker.lua
 raidHelper.lua
 cheatMacros.lua
+raidOrganizer.lua
