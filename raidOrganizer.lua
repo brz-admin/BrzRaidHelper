@@ -27,7 +27,7 @@ BRH_RaidOrganizer = BRH_RaidOrganizer or {}
 BRH_RaidOrganizer.sets = BRH_RaidOrganizer.sets or {};
 BRH_RaidOrganizer.members = BRH_RaidOrganizer.members or {};
 BRH_RaidOrganizer.conf = BRH_RaidOrganizer.conf or {};
-BRH_RaidOrganizer.conf.show = BRH_RaidOrganizer.conf.show or true;
+BRH_RaidOrganizer.conf.show = BRH_RaidOrganizer.conf.show or false;
 
 -- used fonction pre-loading, faster they say
 strlow = string.lower;
@@ -37,7 +37,7 @@ GetRaidRosterInfo = GetRaidRosterInfo;
 SwapRaidSubgroup = SwapRaidSubgroup;
 
 -- module variables
-vro.dbug = true;
+vro.dbug = false;
 vro.dbuglvl = 3;
 vro.assignedPlayers = {};
 vro.CurrentSetup = nil;
