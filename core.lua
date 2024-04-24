@@ -2,10 +2,10 @@ BRH = {};
 BRH.syncPrefix = "BRH_Sync"
 BRH.build = "600"
 
-if (BRH_Config == nil) then
+if (BRH_config == nil) then
 	BRH_spellsToTrack = nil;
 	BRH_spellsToTrack = {};
-	BRH_Config = {
+	BRH_config = {
 		["build"] = BRH.build,
 		["amTank"] = false
 	} 

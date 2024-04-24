@@ -99,8 +99,8 @@ SlashCmdList["SCD"] = scd.cmdHandle
 
 RH.amTank = {}
 local amTank = RH.amTank
-if BRH_Config.amTank == nil then
-	BRH_Config.amTank = false
+if BRH_config.amTank == nil then
+	BRH_config.amTank = false
 end
 
 amTank.frame = CreateFrame("Frame", "BRH_amTankFrame")
@@ -112,7 +112,7 @@ amTank.frame:RegisterEvent("PLAYER_REGEN_DISABLED")
 amTank.frame:RegisterEvent("PLAYER_REGEN_ENABLED")
 
 amTank.frame:SetScript("OnEvent", function()
-	if not BRH_Config.amTank then return end
+	if not BRH_config.amTank then return end
 	if not UnitInRaid("player") then return end
 
     if event == "PLAYER_REGEN_DISABLED" then
@@ -146,11 +146,11 @@ amTank.frame:SetScript("OnEvent", function()
 end)
 
 function amTank.Handle(msg)
-	if (BRH_Config.amTank) then
-		BRH_Config.amTank = false
+	if (BRH_config.amTank) then
+		BRH_config.amTank = false
 		util.print("Tank miss announces : OFF")
 	else
-		BRH_Config.amTank = true
+		BRH_config.amTank = true
 		util.print("Tank miss announces : ON")
 	end
 end

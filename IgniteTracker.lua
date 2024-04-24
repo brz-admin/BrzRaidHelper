@@ -2,7 +2,7 @@
 local parser = BRH.parser
 local util = BRH.util
 
-if (BRH_Config.igniteTracker == nil) then BRH_Config.igniteTracker = { visible = true } end
+if (BRH_config.igniteTracker == nil) then BRH_config.igniteTracker = { visible = false } end
 
 BRH.igniteTracker = {}
 local igniteTracker = BRH.igniteTracker
@@ -51,7 +51,7 @@ igniteTracker.main:SetScript("OnDragStart", function() this:StartMoving() end);
 igniteTracker.main:SetScript("OnDragStop", function() this:StopMovingOrSizing() end);
 
 -- visibility according to option
-if (BRH_Config.igniteTracker.visible) then
+if (BRH_config.igniteTracker.visible) then
     igniteTracker.main:Show();
 else
     igniteTracker.main:Hide()
@@ -336,11 +336,11 @@ igniteTracker.main:SetScript("OnUpdate", function()
 end)
 
 function igniteTracker.cmdHandle(msg)
-	if (BRH_Config.igniteTracker.visible) then
-		BRH_Config.igniteTracker.visible = false
+	if (BRH_config.igniteTracker.visible) then
+		BRH_config.igniteTracker.visible = false
 		igniteTracker.main:Hide();
 	else
-		BRH_Config.igniteTracker.visible = true
+		BRH_config.igniteTracker.visible = true
 		igniteTracker.main:Show();
 	end
 end
