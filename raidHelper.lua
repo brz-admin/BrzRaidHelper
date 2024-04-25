@@ -4,7 +4,7 @@ local util = BRH.util
 local parser = BRH.parser
 
 strlow = string.lower;
-local playerName = UnitName("player");
+local BRH.pName = UnitName("player");
 
 -------- SAPPER COUNT DOWN -----------
 
@@ -64,7 +64,6 @@ scd.frame:SetScript("OnUpdate", function()
 end)
 
 function scd.cmdHandle(msg)
-	strsplit(" ", msg)
 	local cmd = util.strsplit(" ", msg)[1]
 	local arg = util.strsplit(" ", msg)[2]
 
@@ -123,7 +122,7 @@ amTank.frame:SetScript("OnEvent", function()
         this:UnregisterEvent("CHAT_MSG_SPELL_SELF_DAMAGE")
     elseif amTank.inCombat then
         local currentTime = GetTime()
-        if currentTime - amTank.startTime <= amTank.duration and UnitName("TargetOfTarget") == UnitName("Player") then
+        if currentTime - amTank.startTime <= amTank.duration and UnitName("TargetOfTarget") == BRH.pName then
 			local target = UnitName("target")
             if event then
 				if (string.find(arg1, " miss ") or string.find(arg1, " rate ")) then
@@ -158,7 +157,6 @@ SLASH_AMTANK1 = "/iamtank"
 
 -------- plsBop & plsInfu -----------
 -- Allow Players in raid to ask for a BOP or an INFU and paladin/priest to cast it before casting anything else
-
 ---------- PLSINFU ----------
 RH.plsInfu = {}
 local plsInfu = RH.plsInfu
@@ -175,6 +173,16 @@ if GetLocale() == "frFR" then
 end
 
 function plsInfu.infuIfCan(msg)
+	if msg == "show" then
+		if plsInfu.frame:IsVisible() then
+			plsInfu.frame:Hide()
+		else
+			plsInfu.frame:Show()
+		end
+	end
+
+	if pClass ~= "priest" then return end
+
 	if (plsInfu.askedInfu ~= nil) then
 		local infuCD = util.getSpellCD(infu)
 
@@ -184,29 +192,86 @@ function plsInfu.infuIfCan(msg)
 		TargetByName(plsInfu.askedInfu, true);
 		CastSpellByName(infu)
 		TargetLastTarget();
-		util.print("Infu envoyée sur "..askedInfu)
+		util.print("Infu envoyée sur "..plsInfu.askedInfu)
+		plsInfu.infuUpTimer = nil
+		plsInfu.frame:Hide();
+		plsInfu.tarName:SetText("");
 		plsInfu.askedInfu = nil;
-		plsInfu.infuUpTimer = GetTime() + 180
 	end
 end
 
 function plsInfu.HandleAddonMSG(sender, data)
+	if BRH.pClass ~= "priest" then return end
 	local split = util.strsplit(";;;", data)
 	local cmd = split[1]
 	local datas = split[2]
 
-    if (cmd == "plsInfu" and strlow(datas) == strlow(UnitName("Player"))) then
+    if (cmd == "plsInfu" and strlow(datas) == strlow(BRH.pName) and plsInfu.askedInfu == nil) then
         plsInfu.askedInfu = sender
+		plsInfu.infuUpTimer = GetTime() + 10
+		plsInfu.frame:Show();
+		plsInfu.tarName:SetText(plsInfu.askedInfu);
         util.print(sender.." a demandé une infu !");
     end
 end
 
+function plsInfu.plsInfuShow()
+
 plsInfu.frame = CreateFrame("Frame", "BRH_plsInfu")
+plsInfu.frame:SetPoint("CENTER", "UIParent", "CENTER")
 plsInfu.frame:RegisterEvent("CHAT_MSG_ADDON");
+plsInfu.frame:SetWidth(100)
+plsInfu.frame:SetHeight(30)
+plsInfu.frame:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeSize = 5});
+plsInfu.frame:SetBackdropColor(0,0,0,0.7);
+plsInfu.main:SetMovable(true);
+plsInfu.main:EnableMouse(true);
+plsInfu.main:RegisterForDrag("LeftButton");
+plsInfu.main:SetScript("OnDragStart", function() this:StartMoving() end);
+plsInfu.main:SetScript("OnDragStop", function() this:StopMovingOrSizing() end);
+plsInfu.frame:Hide();
+plsInfu.button = CreateFrame("Button", "BRH_plsInfu_Button", plsInfu.frame);
+--plsInfu.button:SetFont("Fonts\\FRIZQT__.TTF", 8)
+--plsInfu.button:SetTextColor(1, 1, 1, 1);
+plsInfu.button:SetAllPoints(plsInfu.frame);
+plsInfu.button:SetText("")
+plsInfu.button:SetFrameStrata("DIALOG")
+plsInfu.button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+
+plsInfu.icon = plsInfu.frame:CreateTexture("BRH_plsInfu_icon", "OVERLAY")
+plsInfu.icon:SetPoint("LEFT", plsInfu.frame, "LEFT")
+plsInfu.icon:SetHeight(30)
+plsInfu.icon:SetWidth(30)
+plsInfu.icon:SetTexture(BRH.BS:GetSpellIcon("power infusion"))
+plsInfu.icon:SetTexCoord(0.1,0.9,0.1,0.9)
+
+plsInfu.tarNameFrame = CreateFrame("Frame", "BRH_plsInfu_tarNameFrame", plsInfu.frame)
+plsInfu.tarNameFrame:SetPoint("RIGHT", plsInfu.frame, "RIGHT")
+plsInfu.tarNameFrame:SetWidth(70)
+plsInfu.tarNameFrame:SetHeight(30)
+
+plsInfu.tarName = plsInfu.tarNameFrame:CreateFontString("BRH_plsInfu_tarName", "ARTWORK", "GameFontWhite")
+plsInfu.tarName:SetAllPoints(plsInfu.tarNameFrame)
+plsInfu.tarName:SetText("");
+plsInfu.tarName:SetFont("Fonts\\FRIZQT__.TTF", 12)
+plsInfu.tarName:SetTextColor(1, 1, 1, 1);
+
 plsInfu.frame:SetScript("OnEvent", function() 
     local sender = arg4
     local data = util.strsplit(";;;", arg2)
 	plsInfu.HandleAddonMSG(arg4, arg2)
+end)
+
+plsInfu.frame:SetScript("OnUpdate", function() 
+	if (plsInfu.infuUpTimer and plsInfu.infuUpTimer <= GetTime()) then
+		plsInfu.infuUpTimer = nil
+		plsInfu.frame:Hide();
+		plsInfu.tarName:SetText("");
+	end
+end)
+
+plsInfu.button:SetScript("OnClick", function()
+	plsInfu.infuIfCan()
 end)
 
 SlashCmdList["PLSINFU"] = plsInfu.Handle
@@ -251,7 +316,7 @@ function plsbop.HandleAddonMSG(sender, data)
 	local cmd = split[1]
 	local datas = split[2]
 
-    if (cmd == "plsBOP" and strlow(datas) == strlow(UnitName("Player"))) then
+    if (cmd == "plsBOP" and strlow(datas) == strlow(BRH.pName)) then
         plsbop.askedBOP = sender
         util.print(sender.." a demandé une BOP !")
     end
@@ -296,12 +361,12 @@ BRH_RaidInfo:RegisterEvent("CONFIRM_LOOT_ROLL");
 BRH_RaidInfo:SetScript("OnUpdate", function() 
 
 	if (infuUpTimer ~= nil and infuUpTimer <= GetTime()) then
-		BRH.msgToAll("Infu de "..playerName.." Up !")
+		BRH.msgToAll("Infu de "..BRH.pName.." Up !")
 		infuUpTimer = nil;
 	end
 
 	if (BOPUpTimer ~= nil and BOPUpTimer <= GetTime()) then
-		BRH.msgToAll("BOP de "..playerName.." Up !")
+		BRH.msgToAll("BOP de "..BRH.pName.." Up !")
 		BOPUpTimer = nil;
 	end
 
@@ -338,9 +403,9 @@ BRH_RaidInfo:SetScript("OnEvent", function()
 	elseif (event == "START_LOOT_ROLL") then
 		if (vacumeName ~= nil) then
 			local _, _, _, quality = GetLootRollItemInfo(arg1);
-			if (strlow(UnitName("Player")) == strlow(vacumeName) and quality < 5) then
+			if (strlow(BRH.pName) == strlow(vacumeName) and quality < 5) then
 				RollOnLoot(arg1, 1);
-			elseif (quality == 5 and strlow(UnitName("Player")) == strlow(vacumeLegend)) then
+			elseif (quality == 5 and strlow(BRH.pName) == strlow(vacumeLegend)) then
 				RollOnLoot(arg1, 1);
 			else
 				RollOnLoot(arg1, 0);
@@ -349,7 +414,7 @@ BRH_RaidInfo:SetScript("OnEvent", function()
 	elseif (event == "CONFIRM_LOOT_ROLL") then
 		if (vacumeName ~= nil) then
 			local _, _, _, quality = GetLootRollItemInfo(arg1);
-			if (strlow(UnitName("Player")) == strlow(vacumeName) and quality < 5) then
+			if (strlow(BRH.pName) == strlow(vacumeName) and quality < 5) then
 				ConfirmLootRoll(arg1, 1)
 			end
 		end

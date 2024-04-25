@@ -38,7 +38,7 @@ lipAOE.frame:SetScript("OnEvent", function()
 	local cmd = data[1]
 	local datas = data[2]
 
-    if (cmd == "LIPROTA" and UnitName("Player") ~= sender) then
+    if (cmd == "LIPROTA" and BRH.pName ~= sender) then
         lipAOE.canTaunt = false;
         lipAOE.timer = GetTime() + 6;
         return;
@@ -110,7 +110,7 @@ function macro.tauntIfCan()
 	local TargetOfTarget = UnitName("playertargettarget");
 
 	-- we are ToT why should we bother
-	if (TargetOfTarget == UnitName("Player")) then return end;
+	if (TargetOfTarget == BRH.pName) then return end;
 
 	-- no ToT so we can taunt anyway
 	if (TargetOfTarget == nil) then doTaunt() return end;
@@ -174,11 +174,10 @@ function macro.doPetriIfTooHigh()
 	local data, count, threat100 = KLHTM_GetRaidData()
 
 	-- only one in Threatlist or first isn't us ? skip
-	if (count < 2 or data[1].name ~= playerName) then return end
+	if (count < 2 or data[1].name ~= BRH.pName) then return end
 
-	local _, myclass = UnitClass("player")
 	local threshold = 1.15
-	if (myclass == "WARRIOR" or myclass == "ROGUE" or myclass == "DRUID") then
+	if (BRH.pClass == "WARRIOR" or BRH.pClass == "ROGUE" or BRH.pClass == "DRUID") then
 		threshold = 1.05
 	end
 	

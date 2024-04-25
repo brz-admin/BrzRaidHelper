@@ -30,7 +30,7 @@ function parser.periodicSpellDamage(msg)
         end
 
         if (string.find(msg, gs)) then
-            source = UnitName("player")
+            source = BRH.pName
             if(GetLocale() == "frFR") then
                 _, _, spellName, damage, damageType, target = string.find(msg, gs)
             else
@@ -87,7 +87,7 @@ function parser.selfSpellDamage(msg)
 		_, _, spellName, target, damage, damageSchool = string.find(msg, hit)
 	end
 
-	source = UnitName("Player")
+	source = BRH.pName
     damage = tonumber(damage)
 
     return target, damage, damageSchool, source, spellName, damageType

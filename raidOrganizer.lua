@@ -140,7 +140,6 @@ VRO_MainFrame_Save.EditBox:SetScript("OnTabPressed", function()
 end)
 
 VRO_MainFrame_Save.Button = CreateFrame("Button", "VRO_MainFrame_Save_Button", VRO_MainFrame_Save);
-VRO_MainFrame_Save.Button:SetText("Apply Set");
 VRO_MainFrame_Save.Button:SetFont("Fonts\\FRIZQT__.TTF", 8)
 VRO_MainFrame_Save.Button:SetTextColor(1, 1, 1, 1);
 VRO_MainFrame_Save.Button:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeSize = 5});
@@ -726,7 +725,7 @@ end
 
 function vro.HandleAddonMSG(sender, data)
 	-- check if we accept the call
-	if not util.PlayerIsPromoted(sender) or UnitName("Player") == sender or not IsRaidLeader() then return end
+	if not util.PlayerIsPromoted(sender) or BRH.pName == sender or not IsRaidLeader() then return end
 	-- separate the type of command of it's datas
 	local split = util.strsplit(";;;", data)
 	local cmd = split[1]

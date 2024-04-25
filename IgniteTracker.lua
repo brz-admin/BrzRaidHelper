@@ -9,7 +9,6 @@ igniteTracker.lastCritSource = "";
 igniteTracker.lastCritDamage = 0;
 igniteTracker.lastCritSpell = "";
 igniteTracker.IgniteTrackLastTick = GetTime();
-local _, pClass = UnitClass("Player")
 
 IGNITE = "Ignite"
 if (GetLocale() == "frFR") then 
@@ -251,7 +250,7 @@ igniteTracker.main:SetScript("OnEvent", function()
 			end
 		elseif (event == "CHAT_MSG_SPELL_SELF_DAMAGE") then
 			target, damage, damageSchool, source, spellName, damageType = parser.selfSpellDamage(arg1)
-			sourceClass = pClass
+			sourceClass = BRH.pClass
 		end
 		if (sourceClass == nil) then return end;
         -- Not a mage, we don't care about you
@@ -327,7 +326,7 @@ igniteTracker.main:SetScript("OnUpdate", function()
 end)
 
 function igniteTracker.init()
-	
+
 	BRH_config.igniteTracker = BRH_config.igniteTracker or { visible = false }
 
 	-- visibility according to option

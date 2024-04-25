@@ -270,7 +270,7 @@ end
 function tracker.setTrackedSpellOnCD(sender, spell, time)
 	spell = strlow(spell);
 
-	local sentBySelf = strlow(UnitName("Player")) == strlow(sender);
+	local sentBySelf = strlow(BRH.pName) == strlow(sender);
 	if (BRH_spellsToTrack ~= nil and BRH_spellsToTrack[spell] ~= nil) then
 		BRH_spellsToTrack[spell]["onCD"][sender] = time;
 	end
@@ -283,7 +283,7 @@ end
 
 function tracker.handleTrackedSpellUsed(sender, datas)
 	-- we don't wanna get our own updates as we already handled them
-	if (strlow(sender) == strlow(UnitName("Player"))) then
+	if (strlow(sender) == strlow(BRH.pName)) then
 		return
 	end
 
@@ -354,7 +354,7 @@ function tracker.checkActions()
 					aName = "potion"
 				end
 				local time = start + cd
-				tracker.setTrackedSpellOnCD(UnitName("player"), aName, time)
+				tracker.setTrackedSpellOnCD(BRH.pName, aName, time)
 			end
 		end
 	end
@@ -411,7 +411,7 @@ function tracker.checkSpells()
 			if (enable and cd > 45) then
 				local sName = GetSpellName(spellSlot, BOOKTYPE_SPELL);
 				local time = start + cd
-				tracker.setTrackedSpellOnCD(UnitName("player"), sName, time)
+				tracker.setTrackedSpellOnCD(BRH.pName, sName, time)
 			end
 		end
 	end
@@ -460,7 +460,7 @@ function tracker.checkIventItems()
 			if (enable and cd > 45) then
 				local aName = util.getActionName(actionIdx);
 				local time = start + cd
-				tracker.setTrackedSpellOnCD(UnitName("player"), aName, time)
+				tracker.setTrackedSpellOnCD(BRH.pName, aName, time)
 			end
 		end
 	end
@@ -518,7 +518,7 @@ function tracker.checkContainItem()
 					aName = "potion"
 				end
 				local time = start + cd
-				tracker.setTrackedSpellOnCD(UnitName("player"), aName, time)
+				tracker.setTrackedSpellOnCD(BRH.pName, aName, time)
 			end
 		end
 	end
@@ -629,7 +629,7 @@ function tracker.HandleAddonMSG(sender, data)
 	if (cmd == "trackedSpellUsed") then
 		local spellData = util.strsplit(":", datas)
 		local spellname = strlow(spellData[1])
-		if (strlow(sender) ~= strlow(UnitName("Player"))) then
+		if (strlow(sender) ~= strlow(BRH.pName)) then
 			if (BRH_CDTrackerConfig.annCD) then
 				util.print("\124cffcc7930["..sender.."]\124r used \124cff26d36e["..spellname.."]\124r. Up in \124cff26d3b9"..(math.ceil(spellData[2] - GetTime())).."\124rs")
 			end

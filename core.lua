@@ -4,6 +4,10 @@ BRH.build = "700"
 
 BRH.BS = AceLibrary("Babble-Spell-2.2")
 
+local _, localClass = UnitClass("player")
+BRH.pClass = string.lower(localClass)
+BRH.pName = UnitName("player")
+
 BRH.MainFrame = CreateFrame("Frame", "BRH_MainFrame")
 BRH.MainFrame:RegisterEvent("ADDON_LOADED")
 BRH.MainFrame:SetScript("OnEvent", function()
