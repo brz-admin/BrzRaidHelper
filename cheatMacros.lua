@@ -13,7 +13,8 @@ macro.LIPAOERota = {}
 lipAOE = macro.LIPAOERota
 lipAOE.canTaunt = true;
 lipAOE.timer = nil;
-
+lipAOE.annDone = false;
+lipAOE.annTimer = nil
 ----------- FRAME ------------
 
 lipAOE.frame = CreateFrame("Frame", "LIPAOE_Rotation")
@@ -23,6 +24,11 @@ lipAOE.frame:SetScript("OnUpdate", function()
 		if (lipAOE.timer ~= nil and lipAOE.timer <= GetTime()) then
 			lipAOE.canTaunt = true;
 		end
+	end
+
+	if (lipAOE.annTimer ~= nil and lipAOE.annTimer <= GetTime()) then
+		lipAOE.annDone = false
+		lipAOE.annTimer = nil
 	end
 end)
 
@@ -55,7 +61,7 @@ lipAOE.Handle = function(msg)
 
 	if (lipAOE.canTaunt) then
 
-        if (haveLIP) then 
+		if (haveLIP) then 
 		    UseContainerItem(lipBag, lipSlot);
         end
 
@@ -63,6 +69,17 @@ lipAOE.Handle = function(msg)
 			CastSpellByName("Cri de défi")
 		else
 			CastSpellByName("Challenging Shout")
+		end
+		
+		local chats = { "SAY", "YELL", "RAID_WARNING"}
+		if not lipAOE.annDone then
+			for idx, chatType in ipairs(chats) do
+				SendChatMessage("-->> AOE TAUNT \124cfffc6c6c"..string.upper(UnitName('player')).."\124r <<--", chatType)
+				if not haveLIP then SendChatMessage("-->> NO LIP PLS HEAL  <<--", chatType) end
+			end
+
+			lipAOE.annDone = true
+			lipAOE.annTimer = GetTime() + 20;
 		end
 
 		util.addonCom("LIPROTA", "");
