@@ -479,7 +479,6 @@ if (checking and cmd == "okCheck") then
 end
 
 local function BRHcmdHandle(msg)
-	strsplit(" ", msg)
 	local cmd = util.strsplit(" ", msg)[1]
 	local arg = util.strsplit(" ", msg)[2]
 	if cmd then
