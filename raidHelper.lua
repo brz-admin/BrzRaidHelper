@@ -3,8 +3,7 @@ local RH = BRH.raidHelper
 local util = BRH.util
 local parser = BRH.parser
 
-strlow = string.lower;
-local BRH.pName = UnitName("player");
+strlow = string.lower
 
 -------- SAPPER COUNT DOWN -----------
 
