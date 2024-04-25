@@ -5,6 +5,9 @@ local util = BRH.util
 local parser = BRH.parser
 local strlow = string.lower;
 
+function macro.init() 
+	BRH_config.amTank = BRH_config.amTank or false;
+end
 ---------- LIP ROTA ----------
 macro.LIPAOERota = {}
 lipAOE = macro.LIPAOERota

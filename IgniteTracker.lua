@@ -2,8 +2,6 @@
 local parser = BRH.parser
 local util = BRH.util
 
-if (BRH_config.igniteTracker == nil) then BRH_config.igniteTracker = { visible = false } end
-
 BRH.igniteTracker = {}
 local igniteTracker = BRH.igniteTracker
 
@@ -49,13 +47,6 @@ igniteTracker.main:EnableMouse(true);
 igniteTracker.main:RegisterForDrag("LeftButton");
 igniteTracker.main:SetScript("OnDragStart", function() this:StartMoving() end);
 igniteTracker.main:SetScript("OnDragStop", function() this:StopMovingOrSizing() end);
-
--- visibility according to option
-if (BRH_config.igniteTracker.visible) then
-    igniteTracker.main:Show();
-else
-    igniteTracker.main:Hide()
-end
 
 -- Bckground
 igniteTracker.bg = CreateFrame("Frame", "igniteTracker_bg", igniteTracker.main);
@@ -334,6 +325,18 @@ igniteTracker.main:SetScript("OnUpdate", function()
 
 	igniteTracker.IgniteTrackLastTick = GetTime();
 end)
+
+function igniteTracker.init()
+	
+	BRH_config.igniteTracker = BRH_config.igniteTracker or { visible = false }
+
+	-- visibility according to option
+	if BRH_config.igniteTracker.visible then
+		BRH.igniteTracker.main:Show();
+	else
+		BRH.igniteTracker.main:Hide()
+	end
+end
 
 function igniteTracker.cmdHandle(msg)
 	if (BRH_config.igniteTracker.visible) then

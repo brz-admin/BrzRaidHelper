@@ -1,17 +1,7 @@
 
 
 BRH.parser = {}
-parser = BRH.parser
-
-function parser.addParentheses(match)
-    if (match == "%s") then
-        return "(.+)"
-    else
-        return "(" .. match .. ")"
-    end
-end
-
-BRH.parser.fr = {}
+local parser = BRH.parser
 
 function parser.periodicSpellDamage(msg)
     local target, damage, damageType, source, spellName

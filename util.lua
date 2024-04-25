@@ -3,6 +3,7 @@ local strlow = string.lower;
 
 BRH.util = {}
 local util = BRH.util
+local parser = BRH.parser
 --|cff64fc8aBrz|rRaid|cffb0fc64Helper|r
 -- Print to chat frame, used for  debug mostly
 function util.print(msg)

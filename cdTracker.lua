@@ -51,7 +51,6 @@ BRH_CDTracker.main:SetPoint("CENTER", "UIParent", "CENTER")
 BRH_CDTracker.main:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeSize = 5});
 BRH_CDTracker.main:SetBackdropColor(0,0,0,0);
 BRH_CDTracker.main:RegisterEvent("RAID_ROSTER_UPDATE")
-BRH_CDTracker.main:RegisterEvent("ADDON_LOADED")
 BRH_CDTracker.main:RegisterEvent("CHAT_MSG_ADDON")
 BRH_CDTracker.main:SetMovable(true);
 BRH_CDTracker.main:EnableMouse(true);
@@ -596,23 +595,22 @@ BRH_CDTracker.main:SetScript("OnUpdate", function()
 	end
 end)
 
+function tracker.init()
+	BRH_spellsToTrack = BRH_spellsToTrack or {};
+	BRH_CDTrackerConfig = BRH_CDTrackerConfig or  {}
+	BRH_CDTrackerConfig.show = BRH_CDTrackerConfig.show or false
+	BRH_CDTrackerConfig.annCD = BRH_CDTrackerConfig.annCD or false
+
+	for spell, data in pairs(BRH_spellsToTrack) do
+		BRH_spellsToTrack[spell].onCD = nil;
+		BRH_spellsToTrack[spell].onCD = {};
+	end
+
+	tracker.buildTrackedSpellsGUI();
+end
+
 BRH_CDTracker.main:SetScript("OnEvent", function()
-	if (event == "ADDON_LOADED" and arg1 == "BlastRaidHelper") then 
-		BRH_CDTrackerConfig = BRH_CDTrackerConfig or {
-			["show"] = false
-		}
-
-		if (BRH_spellsToTrack == nil) then
-			BRH_spellsToTrack = {}
-		end
-
-		for spell, data in pairs(BRH_spellsToTrack) do
-			BRH_spellsToTrack[spell].onCD = nil;
-			BRH_spellsToTrack[spell].onCD = {};
-		end
-
-		tracker.buildTrackedSpellsGUI();
-	elseif (event == "RAID_ROSTER_UPDATE") then	
+	if (event == "RAID_ROSTER_UPDATE") then	
 		tracker.getMyCds()
 	elseif (event == "CHAT_MSG_ADDON" and arg1 == BRH.syncPrefix) then
 		tracker.HandleAddonMSG(arg4, arg2);
@@ -620,7 +618,7 @@ BRH_CDTracker.main:SetScript("OnEvent", function()
 
 end)
 
-if (BRH_CDTrackerConfig.annCD == nil) then BRH_CDTrackerConfig.annCD = false end;
+
 
 -- to allow client to handle this calmly and not stutter we are gonna queue the CD list to update
 tracker.cdListQueue = {}

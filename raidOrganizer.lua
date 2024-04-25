@@ -21,14 +21,6 @@ local vro = BRH.VanillaRaidOrganizer
 
 vro.syncPrefix = "VRO_Sync"
 
--- module saved variables
-BRH_RaidOrganizer = BRH_RaidOrganizer or {}
-
-BRH_RaidOrganizer.sets = BRH_RaidOrganizer.sets or {};
-BRH_RaidOrganizer.members = BRH_RaidOrganizer.members or {};
-BRH_RaidOrganizer.conf = BRH_RaidOrganizer.conf or {};
-BRH_RaidOrganizer.conf.show = BRH_RaidOrganizer.conf.show or false;
-
 -- used fonction pre-loading, faster they say
 strlow = string.lower;
 strfor = string.format;
@@ -96,7 +88,7 @@ VRO_MainFrame:SetHeight(340)
 VRO_MainFrame:SetScale(1.25)
 VRO_MainFrame:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeSize = 5});
 VRO_MainFrame:SetBackdropColor(0,0,0,0.7);
-if BRH_RaidOrganizer.conf.show then VRO_MainFrame:Show() else VRO_MainFrame:Hide() end;
+
 
 VRO_MainFrame_Title = CreateFrame("Frame", "VRO_MainFrame_Title", VRO_MainFrame);
 VRO_MainFrame_Title:SetPoint("TOP", "VRO_MainFrame", 0, -0);
@@ -208,42 +200,65 @@ VRO_MainFrame_Save.delButton:SetScript("OnClick", function ()
 end)
 
 VRO_MainFrame_Menu_SetsDD = CreateFrame("Frame", "VRO_MainFrame_Menu_SetsDD", VRO_MainFrame, "UIDropDownMenuTemplate")
-UIDropDownMenu_Initialize(VRO_MainFrame_Menu_SetsDD, function()
-	UIDropDownMenu_AddButton({
-		text="Current",
-		checked=vro.gui.selected == "Current",
-		func = function ()
-			vro.gui.selected = "Current"
-			vro.loadSetInGUI("Current")
-			UIDropDownMenu_SetSelectedName(VRO_MainFrame_Menu_SetsDD, "Current", "Current")
-		end
-	})
-	if (BRH_RaidOrganizer.sets and type(BRH_RaidOrganizer.sets) == "table") then
-		for set,_ in pairs(BRH_RaidOrganizer.sets) do
-			UIDropDownMenu_AddButton({
-				text=set,
-				checked=vro.gui.selected == set,
-				arg1 = set,
-				func = function (set)
-					vro.gui.selected = set
-					vro.loadSetInGUI(set)
-					UIDropDownMenu_SetSelectedName(VRO_MainFrame_Menu_SetsDD, set, set)
-				end
-			})
-		end
+
+function vro.init()
+	
+	BRH_RaidOrganizer = BRH_RaidOrganizer or {}
+	BRH_RaidOrganizer.sets = BRH_RaidOrganizer.sets or {};
+	BRH_RaidOrganizer.members = BRH_RaidOrganizer.members or {};
+	BRH_RaidOrganizer.conf = BRH_RaidOrganizer.conf or {};
+	BRH_RaidOrganizer.conf.show = BRH_RaidOrganizer.conf.show or false;
+
+	if BRH_RaidOrganizer.conf.show then 
+		VRO_MainFrame:Show() 
+	else 
+		VRO_MainFrame:Hide() 
 	end
-	UIDropDownMenu_SetWidth(30, VRO_MainFrame_Menu_SetsDD)
-	UIDropDownMenu_SetButtonWidth(30, VRO_MainFrame_Menu_SetsDD)
-	UIDropDownMenu_SetText("Sets", VRO_MainFrame_Menu_SetsDD)
-	VRO_MainFrame_Menu_SetsDD:SetPoint("LEFT", VRO_MainFrame_Menu, "LEFT", 10,0);
-	VRO_MainFrame_Menu_SetsDD:SetHeight(20)
-	VRO_MainFrame_Menu_SetsDD:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeSize = 5});
-	VRO_MainFrame_Menu_SetsDD:SetBackdropColor(0,0,0,0.5);
-	VRO_MainFrame_Menu_SetsDD:SetBackdropBorderColor(1, 1, 1, 1)
-	VRO_MainFrame_Menu_SetsDDButton:SetAllPoints(VRO_MainFrame_Menu_SetsDD)
-	VRO_MainFrame_Menu_SetsDDText:SetPoint("LEFT", VRO_MainFrame_Menu_SetsDD, "LEFT", 5, 0)
-end, "MENU"
-)
+
+	if not BRH_RaidOrganizer.conf.riShow then
+		VRO_RaidInfo:Hide();
+	else
+		VRO_RaidInfo:Show();
+	end
+
+	UIDropDownMenu_Initialize(VRO_MainFrame_Menu_SetsDD, function()
+		UIDropDownMenu_AddButton({
+			text="Current",
+			checked=vro.gui.selected == "Current",
+			func = function ()
+				vro.gui.selected = "Current"
+				vro.loadSetInGUI("Current")
+				UIDropDownMenu_SetSelectedName(VRO_MainFrame_Menu_SetsDD, "Current", "Current")
+			end
+		})
+		if (BRH_RaidOrganizer.sets and type(BRH_RaidOrganizer.sets) == "table") then
+			for set,_ in pairs(BRH_RaidOrganizer.sets) do
+				UIDropDownMenu_AddButton({
+					text=set,
+					checked=vro.gui.selected == set,
+					arg1 = set,
+					func = function (set)
+						vro.gui.selected = set
+						vro.loadSetInGUI(set)
+						UIDropDownMenu_SetSelectedName(VRO_MainFrame_Menu_SetsDD, set, set)
+					end
+				})
+			end
+		end
+		UIDropDownMenu_SetWidth(30, VRO_MainFrame_Menu_SetsDD)
+		UIDropDownMenu_SetButtonWidth(30, VRO_MainFrame_Menu_SetsDD)
+		UIDropDownMenu_SetText("Sets", VRO_MainFrame_Menu_SetsDD)
+		VRO_MainFrame_Menu_SetsDD:SetPoint("LEFT", VRO_MainFrame_Menu, "LEFT", 10,0);
+		VRO_MainFrame_Menu_SetsDD:SetHeight(20)
+		VRO_MainFrame_Menu_SetsDD:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeSize = 5});
+		VRO_MainFrame_Menu_SetsDD:SetBackdropColor(0,0,0,0.5);
+		VRO_MainFrame_Menu_SetsDD:SetBackdropBorderColor(1, 1, 1, 1)
+		VRO_MainFrame_Menu_SetsDDButton:SetAllPoints(VRO_MainFrame_Menu_SetsDD)
+		VRO_MainFrame_Menu_SetsDDText:SetPoint("LEFT", VRO_MainFrame_Menu_SetsDD, "LEFT", 5, 0)
+	end, "MENU"
+	)
+end
+
 
 VRO_MainFrame_Menu_Loadbutton = CreateFrame("Button", "VRO_MainFrame_Menu_Loadbutton", VRO_MainFrame_Menu);
 VRO_MainFrame_Menu_Loadbutton:SetText("Apply Set");
@@ -588,11 +603,7 @@ VRO_RaidInfo:RegisterForDrag("LeftButton");
 VRO_RaidInfo:EnableMouse();
 VRO_RaidInfo:SetScript("OnDragStart", function() this:StartMoving() end);
 VRO_RaidInfo:SetScript("OnDragStop", function() this:StopMovingOrSizing() end);
-if not BRH_RaidOrganizer.conf.riShow then
-	VRO_RaidInfo:Hide();
-else
-	VRO_RaidInfo:Show();
-end
+
 
 VRO_RaidInfo_RaidHP_title = VRO_RaidInfo:CreateFontString("VRO_RaidInfo_RaidHP_title", "ARTWORK", "GameFontWhite")
 VRO_RaidInfo_RaidHP_title:SetPoint("TOPLEFT", "VRO_RaidInfo", "TOPLEFT",  0, -5);
@@ -690,26 +701,6 @@ VRO_RaidInfo:SetScript("OnUpdate", function()
 		VRO_RaidInfo_RaidHP_number:SetTextColor((1-(raidHealth/raidMaxHealth)), (raidHealth/raidMaxHealth), 0, 1);
 	end
 end)
-
-VRO_RaidBuffs = {}
-VRO_RaidBuffs.main = CreateFrame("Frame", "VRO_RaidBuffs_main")
-VRO_RaidBuffs.main:ClearAllPoints();
-VRO_RaidBuffs.main:SetPoint("CENTER", "UIParent", "CENTER")
-VRO_RaidBuffs.main:SetWidth(100)
-VRO_RaidBuffs.main:SetHeight(1000)
-VRO_RaidBuffs.main:SetScale(1)
-VRO_RaidBuffs.main:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeSize = 5});
-VRO_RaidBuffs.main:SetBackdropColor(0,0,0,0);
-VRO_RaidBuffs.main:SetMovable(true);
-VRO_RaidBuffs.main:RegisterForDrag("LeftButton");
-VRO_RaidBuffs.main:EnableMouse();
-VRO_RaidBuffs.main:SetScript("OnDragStart", function() this:StartMoving() end);
-VRO_RaidBuffs.main:SetScript("OnDragStop", function() this:StopMovingOrSizing() end);
-if not BRH_RaidOrganizer.conf.riShow then
-	VRO_RaidBuffs.main:Hide();
-else
-	VRO_RaidBuffs.main:Show();
-end
 ---------------------
 VRO_MainFrame:RegisterEvent("CHAT_MSG_ADDON");
 VRO_MainFrame:RegisterEvent("RAID_ROSTER_UPDATE");

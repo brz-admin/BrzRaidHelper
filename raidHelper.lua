@@ -99,9 +99,6 @@ SlashCmdList["SCD"] = scd.cmdHandle
 
 RH.amTank = {}
 local amTank = RH.amTank
-if BRH_config.amTank == nil then
-	BRH_config.amTank = false
-end
 
 amTank.frame = CreateFrame("Frame", "BRH_amTankFrame")
 amTank.startTime = 0

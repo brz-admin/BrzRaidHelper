@@ -2,18 +2,26 @@ BRH = {};
 BRH.syncPrefix = "BRH_Sync"
 BRH.build = "700"
 
-if (BRH_config == nil) then
-	BRH_spellsToTrack = nil;
-	BRH_spellsToTrack = {};
-	BRH_config = {
-		["build"] = BRH.build,
-		["amTank"] = false
-	} 
-	BRH_TrackedSpells = nil
-	BRH_CDTrackerConfig = {
-		["show"] = false,
-	}
-	BRH_SpellCastCount = nil
-end
-
 BRH.BS = AceLibrary("Babble-Spell-2.2")
+
+BRH.MainFrame = CreateFrame("Frame", "BRH_MainFrame")
+BRH.MainFrame:RegisterEvent("ADDON_LOADED")
+BRH.MainFrame:SetScript("OnEvent", function()
+	-- load or set savedvariables
+	if (event == "ADDON_LOADED" and arg1 == "BrzRaidHelper") then 
+		BRH_config = BRH_config or {}
+
+		for name, mod in pairs(BRH) do
+			if (type(mod) == "table") then
+				if (name ~= "BS" and mod.init ~= nil and type(mod.init) == "function") then
+					mod.init()
+				end
+			end
+		end
+
+		BRH.util.print("Thank you for using [\124cff64fc8aBrz\124r\124cffffffffraid\124r\124cffb0fc64Helper\124r]")
+	end
+
+
+
+end)
