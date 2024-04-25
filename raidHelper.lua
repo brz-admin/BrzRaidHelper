@@ -201,6 +201,8 @@ end
 
 function plsInfu.HandleAddonMSG(sender, data)
 	if BRH.pClass ~= "priest" then return end
+
+
 	local split = util.strsplit(";;;", data)
 	local cmd = split[1]
 	local datas = split[2]
@@ -214,8 +216,6 @@ function plsInfu.HandleAddonMSG(sender, data)
     end
 end
 
-function plsInfu.plsInfuShow()
-
 plsInfu.frame = CreateFrame("Frame", "BRH_plsInfu")
 plsInfu.frame:SetPoint("CENTER", "UIParent", "CENTER")
 plsInfu.frame:RegisterEvent("CHAT_MSG_ADDON");
@@ -223,11 +223,11 @@ plsInfu.frame:SetWidth(100)
 plsInfu.frame:SetHeight(30)
 plsInfu.frame:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeSize = 5});
 plsInfu.frame:SetBackdropColor(0,0,0,0.7);
-plsInfu.main:SetMovable(true);
-plsInfu.main:EnableMouse(true);
-plsInfu.main:RegisterForDrag("LeftButton");
-plsInfu.main:SetScript("OnDragStart", function() this:StartMoving() end);
-plsInfu.main:SetScript("OnDragStop", function() this:StopMovingOrSizing() end);
+plsInfu.frame:SetMovable(true);
+plsInfu.frame:EnableMouse(true);
+plsInfu.frame:RegisterForDrag("LeftButton");
+plsInfu.frame:SetScript("OnDragStart", function() this:StartMoving() end);
+plsInfu.frame:SetScript("OnDragStop", function() this:StopMovingOrSizing() end);
 plsInfu.frame:Hide();
 plsInfu.button = CreateFrame("Button", "BRH_plsInfu_Button", plsInfu.frame);
 --plsInfu.button:SetFont("Fonts\\FRIZQT__.TTF", 8)
