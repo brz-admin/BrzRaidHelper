@@ -407,9 +407,9 @@ function tracker.checkSpells()
 
 	for spellSlot, doCheck in pairs(tracker.spellsToCheck) do
 		if (doCheck) then
-			local start, cd, enable = GetSpellCooldown(slot, BOOKTYPE_SPELL);
+			local start, cd, enable = GetSpellCooldown(spellSlot, BOOKTYPE_SPELL);
 			if (enable and cd > 45) then
-				local sName = GetSpellName(lot, BOOKTYPE_SPELL);
+				local sName = GetSpellName(spellSlot, BOOKTYPE_SPELL);
 				local time = start + cd
 				tracker.setTrackedSpellOnCD(UnitName("player"), sName, time)
 			end
