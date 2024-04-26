@@ -269,7 +269,7 @@ end
 
 function tracker.setTrackedSpellOnCD(sender, spell, time)
 	spell = strlow(spell);
-
+	if (sender == nil) then return end
 	local sentBySelf = strlow(BRH.pName) == strlow(sender);
 	if (BRH_spellsToTrack ~= nil and BRH_spellsToTrack[spell] ~= nil) then
 		BRH_spellsToTrack[spell]["onCD"][sender] = time;

@@ -2,17 +2,19 @@ BRH = {};
 BRH.syncPrefix = "BRH_Sync"
 BRH.build = "700"
 
-BRH.BS = AceLibrary("Babble-Spell-2.2")
+BRH.BS = AceLibrary("Babble-Spell-2.3")
 
 local _, localClass = UnitClass("player")
-BRH.pClass = string.lower(localClass)
-BRH.pName = UnitName("player")
 
 BRH.MainFrame = CreateFrame("Frame", "BRH_MainFrame")
 BRH.MainFrame:RegisterEvent("ADDON_LOADED")
 BRH.MainFrame:SetScript("OnEvent", function()
 	-- load or set savedvariables
 	if (event == "ADDON_LOADED" and arg1 == "BrzRaidHelper") then 
+
+		BRH.pClass = string.lower(localClass)
+		BRH.pName = UnitName("player")
+
 		BRH_config = BRH_config or {}
 
 		for name, mod in pairs(BRH) do
