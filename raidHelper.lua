@@ -201,8 +201,6 @@ end
 
 function plsInfu.HandleAddonMSG(sender, data)
 	if BRH.pClass ~= "priest" then return end
-
-
 	local split = util.strsplit(";;;", data)
 	local cmd = split[1]
 	local datas = split[2]
@@ -230,37 +228,30 @@ plsInfu.frame:SetScript("OnDragStart", function() this:StartMoving() end);
 plsInfu.frame:SetScript("OnDragStop", function() this:StopMovingOrSizing() end);
 plsInfu.frame:Hide();
 plsInfu.button = CreateFrame("Button", "BRH_plsInfu_Button", plsInfu.frame);
---plsInfu.button:SetFont("Fonts\\FRIZQT__.TTF", 8)
---plsInfu.button:SetTextColor(1, 1, 1, 1);
 plsInfu.button:SetAllPoints(plsInfu.frame);
 plsInfu.button:SetText("")
 plsInfu.button:SetFrameStrata("DIALOG")
 plsInfu.button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-
 plsInfu.icon = plsInfu.frame:CreateTexture("BRH_plsInfu_icon", "OVERLAY")
 plsInfu.icon:SetPoint("LEFT", plsInfu.frame, "LEFT")
 plsInfu.icon:SetHeight(30)
 plsInfu.icon:SetWidth(30)
 plsInfu.icon:SetTexture(BRH.BS:GetSpellIcon("power infusion"))
 plsInfu.icon:SetTexCoord(0.1,0.9,0.1,0.9)
-
 plsInfu.tarNameFrame = CreateFrame("Frame", "BRH_plsInfu_tarNameFrame", plsInfu.frame)
 plsInfu.tarNameFrame:SetPoint("RIGHT", plsInfu.frame, "RIGHT")
 plsInfu.tarNameFrame:SetWidth(70)
 plsInfu.tarNameFrame:SetHeight(30)
-
 plsInfu.tarName = plsInfu.tarNameFrame:CreateFontString("BRH_plsInfu_tarName", "ARTWORK", "GameFontWhite")
 plsInfu.tarName:SetAllPoints(plsInfu.tarNameFrame)
 plsInfu.tarName:SetText("");
 plsInfu.tarName:SetFont("Fonts\\FRIZQT__.TTF", 12)
 plsInfu.tarName:SetTextColor(1, 1, 1, 1);
-
 plsInfu.frame:SetScript("OnEvent", function() 
     local sender = arg4
     local data = util.strsplit(";;;", arg2)
 	plsInfu.HandleAddonMSG(arg4, arg2)
 end)
-
 plsInfu.frame:SetScript("OnUpdate", function() 
 	if (plsInfu.infuUpTimer and plsInfu.infuUpTimer <= GetTime()) then
 		plsInfu.infuUpTimer = nil
@@ -268,7 +259,6 @@ plsInfu.frame:SetScript("OnUpdate", function()
 		plsInfu.tarName:SetText("");
 	end
 end)
-
 plsInfu.button:SetScript("OnClick", function()
 	plsInfu.infuIfCan()
 end)
@@ -295,6 +285,16 @@ if GetLocale() == "frFR" then
 end
 
 function plsbop.BOPIfCan(msg)
+	if msg == "show" then
+		if plsbop.frame:IsVisible() then
+			plsbop.frame:Hide()
+		else
+			plsbop.frame:Show()
+		end
+	end
+
+	if pClass ~= "paladin" then return end
+
 	if (plsbop.askedBOP ~= nil) then
 		local bopCD = util.getSpellCD(bop)
 
@@ -305,18 +305,25 @@ function plsbop.BOPIfCan(msg)
 		TargetByName(plsbop.askedBOP, true);
 		CastSpellByName(bop)
 		TargetLastTarget();
+		util.print("BOP envoyée sur "..plsInfu.askedBOP)
 		plsbop.askedBOP = nil;
-		plsbop.BOPUpTimer = GetTime() + 180
+		plsbop.BOPUpTimer = nil
+		plsbop.frame:Hide();
+		plsbop.tarName:SetText("");
 	end
 end
 
 function plsbop.HandleAddonMSG(sender, data)
+	if BRH.pClass ~= "paladin" then return end
 	local split = util.strsplit(";;;", data)
 	local cmd = split[1]
 	local datas = split[2]
 
     if (cmd == "plsBOP" and strlow(datas) == strlow(BRH.pName)) then
         plsbop.askedBOP = sender
+		plsbop.BOPUpTimer = GetTime() + 10
+		plsbop.frame:Show();
+		plsbop.tarName:SetText(plsbop.askedBOP);
         util.print(sender.." a demandé une BOP !")
     end
 
@@ -324,10 +331,50 @@ end
 
 plsbop.frame = CreateFrame("Frame", "BRH_plsBOP")
 plsbop.frame:RegisterEvent("CHAT_MSG_ADDON");
+plsbop.frame:SetWidth(100)
+plsbop.frame:SetHeight(30)
+plsbop.frame:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", edgeSize = 5});
+plsbop.frame:SetBackdropColor(0,0,0,0.7);
+plsbop.frame:SetMovable(true);
+plsbop.frame:EnableMouse(true);
+plsbop.frame:RegisterForDrag("LeftButton");
+plsbop.frame:SetScript("OnDragStart", function() this:StartMoving() end);
+plsbop.frame:SetScript("OnDragStop", function() this:StopMovingOrSizing() end);
+plsbop.frame:Hide();
+plsbop.button = CreateFrame("Button", "BRH_plsBOP_Button", plsbop.frame);
+plsbop.button:SetAllPoints(plsbop.frame);
+plsbop.button:SetText("")
+plsbop.button:SetFrameStrata("DIALOG")
+plsbop.button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+plsbop.icon = plsbop.frame:CreateTexture("BRH_plsBOP_icon", "OVERLAY")
+plsbop.icon:SetPoint("LEFT", plsbop.frame, "LEFT")
+plsbop.icon:SetHeight(30)
+plsbop.icon:SetWidth(30)
+plsbop.icon:SetTexture(BRH.BS:GetSpellIcon("power infusion"))
+plsbop.icon:SetTexCoord(0.1,0.9,0.1,0.9)
+plsbop.tarNameFrame = CreateFrame("Frame", "BRH_plsBOP_tarNameFrame", plsbop.frame)
+plsbop.tarNameFrame:SetPoint("RIGHT", plsbop.frame, "RIGHT")
+plsbop.tarNameFrame:SetWidth(70)
+plsbop.tarNameFrame:SetHeight(30)
+plsbop.tarName = plsbop.tarNameFrame:CreateFontString("BRH_plsBOP_tarName", "ARTWORK", "GameFontWhite")
+plsbop.tarName:SetAllPoints(plsbop.tarNameFrame)
+plsbop.tarName:SetText("");
+plsbop.tarName:SetFont("Fonts\\FRIZQT__.TTF", 12)
+plsbop.tarName:SetTextColor(1, 1, 1, 1);
 plsbop.frame:SetScript("OnEvent", function() 
     local sender = arg4
     local data = util.strsplit(";;;", arg2)
  	plsbop.HandleAddonMSG(arg4, arg2)
+end)
+plsbop.frame:SetScript("OnUpdate", function() 
+	if (plsbop.BOPUpTimer and plsbop.BOPUpTimer <= GetTime()) then
+		plsbop.BOPUpTimer = nil
+		plsbop.frame:Hide();
+		plsbop.tarName:SetText("");
+	end
+end)
+plsbop.button:SetScript("OnClick", function()
+	plsbop.BOPIfCan()
 end)
 
 SlashCmdList["PLSBOP"] = plsbop.Handle
