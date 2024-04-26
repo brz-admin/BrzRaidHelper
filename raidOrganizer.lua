@@ -64,6 +64,8 @@ function vro.dLog(msg, lvl, force)
 	force = force or false;
 	lvl = lvl or 3;
 	if (vro.dbug and lvl <= vro.dbuglvl) or force then
+		BRH_RaidOrganizer.dbug[BRH_RaidOrganizer.dbugCount] = msg
+		BRH_RaidOrganizer.dbugCount = BRH_RaidOrganizer.dbugCount + 1
 		util.print("DEBUG_RAIDORG: "..msg)
 	end
 end
@@ -207,7 +209,15 @@ function vro.init()
 	BRH_RaidOrganizer.members = BRH_RaidOrganizer.members or {};
 	BRH_RaidOrganizer.conf = BRH_RaidOrganizer.conf or {};
 	BRH_RaidOrganizer.conf.show = BRH_RaidOrganizer.conf.show or false;
+	
+	BRH_RaidOrganizer.dbug = BRH_RaidOrganizer.dbug or {}
+	BRH_RaidOrganizer.dbugCount = BRH_RaidOrganizer.dbugCount or 0
 
+	if (not vro.dbug) then
+		BRH_RaidOrganizer.dbug = {}
+		BRH_RaidOrganizer.dbugCount = 0
+	end
+	
 	if BRH_RaidOrganizer.conf.show then 
 		VRO_MainFrame:Show() 
 	else 
@@ -1098,7 +1108,7 @@ function vro.getUnAssignedPlayerInGroup(group)
 	vro.dLog("getUnassignedPlayerInGroup")
 	for member, datas in pairs(vro.CurrentRoster[group]) do
 		if type(datas) == "table" then
-			if datas.raidIndex and not vro.assignedPlayers[data.name] then
+			if datas.raidIndex and not vro.assignedPlayers[datas.name] then
 				vro.dLog(strfor("%s(%d) not assigned",datas.name, datas.raidIndex))
 				return datas.raidIndex; 
 			end
@@ -1121,15 +1131,17 @@ function vro.getUAPlayerWithRoleAndClass(role, class, raid)
 						return data.raidIndex 
 					else
 						-- else we can just store his index if there is none storred, so we can return it if we found nobody with the correct class with that role that is free
-						correctRoleidx = nil and data.raidIndex or correctRoleidx
-						vro.dLog(strfor("%s(%d) has the correct role but not class so we store it", data.name, data.raidIndex))
+						if (correctRoleidx == nil) then
+							correctRoleidx = data.raidIndex
+							vro.dLog(strfor("%s(%d) has the correct role but not class so we store it", data.name, data.raidIndex))
+						end
 					end
 				end
 			end
 		end
 	end
 	if (correctRoleIdx ~= nil) then
-		vro.dLog(strfor("returning %d as correct role ( but not correct class )"));
+		vro.dLog(strfor("returning %d as correct role ( but not correct class )", correctRoleIdx));
 	else
 		vro.dLog("no unassigned player with role and class");
 	end
@@ -1140,11 +1152,12 @@ function vro.assignPlayer(playerIdx, currGroup, full)
 	vro.dLog(strfor("vro.assignPlayer %d", playerIdx))
 	-- the player normally assigned is in the raid, we now want to know his group
 	local pName, _, thisPlayerGroup = GetRaidRosterInfo(playerIdx);
+	if (pName == nil) then return end
 	if thisPlayerGroup == currGroup then
 		vro.dLog("Player already in the group")
 		-- yay he is already here, we assign him and pass to the next
 		vro.assignedPlayers[pName] = true;
-		vro.tprint(vro.assignedPlayers);
+		--vro.tprint(vro.assignedPlayers);
 		return playerIdx;
 	else
 		vro.dLog("Player not in the group")
@@ -1156,7 +1169,7 @@ function vro.assignPlayer(playerIdx, currGroup, full)
 				vro.dLog(strfor("swapping %d with %d", UAplayer, playerIdx))
 				SwapRaidSubgroup(UAplayer, playerIdx)
 				vro.assignedPlayers[pName] = true;
-				vro.tprint(vro.assignedPlayers);
+				--vro.tprint(vro.assignedPlayers);
 				return playerIdx;
 			end
 		else
@@ -1164,7 +1177,7 @@ function vro.assignPlayer(playerIdx, currGroup, full)
 			vro.dLog(strfor("getting %d into %d", playerIdx, currGroup))
 			SetRaidSubgroup(playerIdx, currGroup)
 			vro.assignedPlayers[pName] = true;
-			vro.tprint(vro.assignedPlayers);
+			--vro.tprint(vro.assignedPlayers);
 			return playerIdx;
 		end
 	end
@@ -1173,11 +1186,14 @@ function vro.assignPlayer(playerIdx, currGroup, full)
 end
 
 vro.sortRaidVar = {}
-vro.sortRaidVar.tick = 0.2
+vro.sortRaidVar.tick = 0.05
 vro.sortRaidVar.nextTick = GetTime() + vro.sortRaidVar.tick
 vro.sortRaidVar.currRost = {}
 vro.sortRaidVar.org = nil
 vro.sortRaidVar.group = nil
+vro.sortRaidVar.member = nil
+vro.sortRaidVar.maxRotations = 5
+vro.sortRaidVar.rotations = 0
 vro.sortRaidVar.ongoing = false;
 
 function vro.sortRaid(org)
@@ -1202,11 +1218,70 @@ function vro.sortRaid(org)
 
 	vro.sortRaidVar.org = org
 	vro.sortRaidVar.group = 1
+	vro.sortRaidVar.member = 1
 	vro.sortRaidVar.ongoing = true
 	vro.sortRaidVar.nextTick = GetTime() + vro.sortRaidVar.tick
 
 	vro.CurrentSetup = org;
 	VRO_MainFrame_Menu_CurrSetup_Text:SetText(org)
+end
+
+function vro.sortMember(group, member)
+	if type(BRH_RaidOrganizer.sets[vro.sortRaidVar.org][group][member]) == "table" then
+		local datas = BRH_RaidOrganizer.sets[vro.sortRaidVar.org][group][member]
+		thisPlayer = nil
+		-- we got a player name, we use it
+		if (datas.name) then
+			vro.dLog("looking for "..datas.name, 3)
+			thisPlayer = vro.getPlayerByName(vro.CurrentRoster, datas.name);
+		end
+
+		-- no name assigned or the player is not here so we are looking for another player with the role and class (if precised) we are looking for
+		if (not thisPlayer) then
+			if (not datas.name) then
+				vro.dLog("no name so we look for role /class ")
+			end
+			thisPlayer = vro.getUAPlayerWithRoleAndClass(datas.role, datas.class, vro.CurrentRoster)
+		end
+		
+		-- still nobody ? skip, elle we got it
+		if (thisPlayer) then
+			local full = vro.CurrentRoster[group] and vro.CurrentRoster[group].full or fasle;
+			datas.raidIndex = vro.assignPlayer(thisPlayer, group, full)
+
+			if datas.role == "tank" and datas.name then
+				PromoteToAssistant(datas.name);
+			end
+
+			if (datas.sign and datas.raidIndex) then
+				SetRaidTarget("raid"..datas.raidIndex, datas.sign) 
+			end
+		end
+	end
+	
+	if (member < 5) then
+		vro.sortRaidVar.member = member + 1
+	else
+		if (group < 8) then
+			vro.sortRaidVar.group = group + 1
+			vro.sortRaidVar.member = 1
+		else
+			if (vro.sortRaidVar.rotations < vro.sortRaidVar.maxRotations) then
+				vro.sortRaidVar.group = 1
+				vro.sortRaidVar.member = 1
+				vro.sortRaidVar.rotations = vro.sortRaidVar.rotations + 1
+			else
+				vro.sortRaidVar.org = nil
+				vro.sortRaidVar.group = nil
+				vro.sortRaidVar.member = nil
+				vro.sortRaidVar.ongoing = false;
+				vro.sortRaidVar.rotations = 0;
+			end
+
+		end
+	end
+
+	vro.sortRaidVar.nextTick = GetTime() + vro.sortRaidVar.tick
 end
 
 function vro.sortGroup(group)
@@ -1224,6 +1299,9 @@ function vro.sortGroup(group)
 
 				-- no name assigned or the player is not here so we are looking for another player with the role and class (if precised) we are looking for
 				if (not thisPlayer) then
+					if (not datas.name) then
+						vro.dLog("no name so we look for role /class ")
+					end
 					thisPlayer = vro.getUAPlayerWithRoleAndClass(datas.role, datas.class, vro.CurrentRoster)
 				end
 				
@@ -1259,7 +1337,7 @@ end
 VRO_MainFrame:SetScript("OnUpdate", function() 
 	if (vro.sortRaidVar.ongoing) then
 		if (vro.sortRaidVar.nextTick <= GetTime()) then
-			vro.sortGroup(vro.sortRaidVar.group)
+			vro.sortMember(vro.sortRaidVar.group, vro.sortRaidVar.member)
 		end
 	end
 end)
