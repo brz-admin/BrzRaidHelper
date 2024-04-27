@@ -11,13 +11,15 @@ WoW Vanilla ( 1.12 ) Addon - Adds helper functions and macro usefull for high le
 
 `/scd [sapper|start]`: Allows synchronizing the casting of sappers. `/scd sapper` will only authorize launching the sapper once the countdown started by `/scd start` is finished. Basically, the Raid Leader starts the timer, then the entire raid spams `/scd sapper`, and everyone's sapper goes off at the same time. Additionally, this macro disables DPSMate and KTM parsing to reduce client lag resulting from the sudden burst of damage.
 
-`/plsInfu [PriestName]`: Asks the specified priest for a Power Infusion, used in conjunction with the following macro.
+`/plsInfu [PriestName]`: Asks the specified priest for a Power Infusion, used in conjunction with the following macro. It also pops a frame on the priest's end that allow him to use Power Infusion on the player that asked it by clicking on it.
 
 `/infuIfCan`: A macro to add to the priest's spells, which automatically casts Power Infusion on a player if requested. It should be added to a frequently used spell to be effective.
+`/infuIfCan show`: show the infuIfCan button to move it
 
 `/plsbop [PaladinName]`: Same principle as `plsinfu` but for Paladin's Blessing of Protection (BoP).
 
 `/BOPIfCan`: Similar to `infuIfCan` but for casting Blessing of Protection.
+`/BOPIfCan show`: show the bopifcan button allowing to move it
 
 `/iamtank` : if ON then if you are the target of target it will announce when you miss for the 5 first seconds of the fight
 
