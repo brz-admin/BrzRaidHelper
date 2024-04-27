@@ -174,9 +174,11 @@ end
 function plsInfu.infuIfCan(msg)
 	if msg == "show" then
 		if plsInfu.frame:IsVisible() then
+			plsInfu.button:Show()
 			plsInfu.frame:Hide()
 		else
 			plsInfu.frame:Show()
+			plsInfu.button:Hide()
 		end
 	end
 
@@ -227,6 +229,11 @@ plsInfu.frame:RegisterForDrag("LeftButton");
 plsInfu.frame:SetScript("OnDragStart", function() this:StartMoving() end);
 plsInfu.frame:SetScript("OnDragStop", function() this:StopMovingOrSizing() end);
 plsInfu.frame:Hide();
+plsInfu.frameName = plsInfu.frame:CreateFontString("BRH_plsInfu_FrameName", "ARTWORK", "GameFontWhite")
+plsInfu.frameName:SetPoint("CENTER", plsInfu.frame, "TOP", 15, 0)
+plsInfu.frameName:SetText("Please Infu");
+plsInfu.frameName:SetFont("Fonts\\FRIZQT__.TTF", 8)
+plsInfu.frameName:SetTextColor(1, 1, 1, 1);
 plsInfu.button = CreateFrame("Button", "BRH_plsInfu_Button", plsInfu.frame);
 plsInfu.button:SetAllPoints(plsInfu.frame);
 plsInfu.button:SetText("")
@@ -289,9 +296,11 @@ end
 function plsbop.BOPIfCan(msg)
 	if msg == "show" then
 		if plsbop.frame:IsVisible() then
+			plsbop.button:Show()
 			plsbop.frame:Hide()
 		else
 			plsbop.frame:Show()
+			plsbop.button:Hide()
 		end
 	end
 
@@ -307,7 +316,7 @@ function plsbop.BOPIfCan(msg)
 		TargetByName(plsbop.askedBOP, true);
 		CastSpellByName(bop)
 		TargetLastTarget();
-		util.print("BOP envoyée sur "..plsInfu.askedBOP)
+		util.print("BOP envoyée sur "..plsbop.askedBOP)
 		plsbop.askedBOP = nil;
 		plsbop.BOPUpTimer = nil
 		plsbop.frame:Hide();
@@ -325,6 +334,7 @@ function plsbop.HandleAddonMSG(sender, data)
         plsbop.askedBOP = sender
 		plsbop.BOPUpTimer = GetTime() + 10
 		plsbop.frame:Show();
+		plsbop.button:Show()
 		plsbop.tarName:SetText(plsbop.askedBOP);
         util.print(sender.." a demandé une BOP !")
     end
@@ -340,15 +350,20 @@ plsbop.frame:SetBackdrop({bgFile = "Interface/Tooltips/UI-Tooltip-Background", e
 plsbop.frame:SetBackdropColor(0,0,0,0.7);
 plsbop.frame:SetMovable(true);
 plsbop.frame:EnableMouse(true);
-plsbop.frame:RegisterForDrag("LeftButton");
+plsbop.frame:RegisterForDrag("RightButton");
 plsbop.frame:SetScript("OnDragStart", function() this:StartMoving() end);
 plsbop.frame:SetScript("OnDragStop", function() this:StopMovingOrSizing() end);
 plsbop.frame:Hide();
+plsbop.frameName = plsbop.frame:CreateFontString("BRH_plsbop_FrameName", "ARTWORK", "GameFontWhite")
+plsbop.frameName:SetPoint("CENTER", plsbop.frame, "TOP", 15, 0)
+plsbop.frameName:SetText("Please BOP");
+plsbop.frameName:SetFont("Fonts\\FRIZQT__.TTF", 8)
+plsbop.frameName:SetTextColor(1, 1, 1, 1);
 plsbop.button = CreateFrame("Button", "BRH_plsBOP_Button", plsbop.frame);
 plsbop.button:SetAllPoints(plsbop.frame);
 plsbop.button:SetText("")
 plsbop.button:SetFrameStrata("DIALOG")
-plsbop.button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+plsbop.button:RegisterForClicks("LeftButtonUp");
 plsbop.icon = plsbop.frame:CreateTexture("BRH_plsBOP_icon", "OVERLAY")
 plsbop.icon:SetPoint("LEFT", plsbop.frame, "LEFT")
 plsbop.icon:SetHeight(30)
