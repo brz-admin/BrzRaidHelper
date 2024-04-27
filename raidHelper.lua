@@ -250,7 +250,9 @@ plsInfu.tarName:SetTextColor(1, 1, 1, 1);
 plsInfu.frame:SetScript("OnEvent", function() 
     local sender = arg4
     local data = util.strsplit(";;;", arg2)
-	plsInfu.HandleAddonMSG(arg4, arg2)
+	if event == "CHAT_MSG_ADDON" then
+		plsInfu.HandleAddonMSG(arg4, arg2)
+	end
 end)
 plsInfu.frame:SetScript("OnUpdate", function() 
 	if (plsInfu.infuUpTimer and plsInfu.infuUpTimer <= GetTime()) then
@@ -293,7 +295,7 @@ function plsbop.BOPIfCan(msg)
 		end
 	end
 
-	if pClass ~= "paladin" then return end
+	if BRH.pClass ~= "paladin" then return end
 
 	if (plsbop.askedBOP ~= nil) then
 		local bopCD = util.getSpellCD(bop)
@@ -365,7 +367,9 @@ plsbop.tarName:SetTextColor(1, 1, 1, 1);
 plsbop.frame:SetScript("OnEvent", function() 
     local sender = arg4
     local data = util.strsplit(";;;", arg2)
- 	plsbop.HandleAddonMSG(arg4, arg2)
+	if event == "CHAT_MSG_ADDON" then
+ 		plsbop.HandleAddonMSG(arg4, arg2)
+	end
 end)
 plsbop.frame:SetScript("OnUpdate", function() 
 	if (plsbop.BOPUpTimer and plsbop.BOPUpTimer <= GetTime()) then
