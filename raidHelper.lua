@@ -330,6 +330,7 @@ function plsbop.HandleAddonMSG(sender, data)
 end
 
 plsbop.frame = CreateFrame("Frame", "BRH_plsBOP")
+plsbop.frame:SetPoint("CENTER", "UIParent", "CENTER")
 plsbop.frame:RegisterEvent("CHAT_MSG_ADDON");
 plsbop.frame:SetWidth(100)
 plsbop.frame:SetHeight(30)
