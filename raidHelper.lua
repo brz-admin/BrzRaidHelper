@@ -275,7 +275,9 @@ end)
 SlashCmdList["PLSINFU"] = plsInfu.Handle
 SlashCmdList["INFUIFCAN"] = plsInfu.infuIfCan
 SLASH_PLSINFU1 = "/plsInfu"
+SLASH_PLSINFU2 = "/plsinfu"
 SLASH_INFUIFCAN1 = "/infuIfCan"
+SLASH_INFUIFCAN2 = "/infuifcan"
 
 ---------- PLSBOP ----------
 RH.plsbop = {}
@@ -400,7 +402,9 @@ end)
 SlashCmdList["PLSBOP"] = plsbop.Handle
 SlashCmdList["BOPIFCAN"] = plsbop.BOPIfCan
 SLASH_PLSBOP1 = "/plsbop"
+SLASH_PLSBOP2 = "/plsBOP"
 SLASH_BOPIFCAN1 = "/BOPIfCan"
+SLASH_BOPIFCAN2 = "/bopifcan"
 
 
 ---------- Raid Helper ----------
