@@ -121,7 +121,7 @@ amTank.frame:SetScript("OnEvent", function()
         this:UnregisterEvent("CHAT_MSG_SPELL_SELF_DAMAGE")
     elseif amTank.inCombat then
         local currentTime = GetTime()
-        if currentTime - amTank.startTime <= amTank.duration and UnitName("TargetOfTarget") == BRH.pName then
+        if currentTime - amTank.startTime <= amTank.duration and UnitName("TargetTarget") == BRH.pName then
 			local target = UnitName("target")
             if event then
 				if (string.find(arg1, " miss ") or string.find(arg1, " rate ")) then
@@ -132,8 +132,6 @@ amTank.frame:SetScript("OnEvent", function()
 					SendChatMessage("-->> DODGE ON >>" .. target .. "<< !!! CAREFUL !!")
 				end
             end
-			
-			
         else
             amTank.inCombat = false
         end
