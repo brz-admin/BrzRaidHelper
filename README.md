@@ -36,6 +36,6 @@ WoW Vanilla ( 1.12 ) Addon - Adds helper functions and macro usefull for high le
 
 `/igniteTracker`: Tracks Ignite, its damage, and who it's on.
 
-## Upcoming:
-
-Raid organizer. I had already done it but it wasn't optimized at all. It will allow preparing groups for C'thun in advance and setting them up with a single click.
+`/vro [show/hide]`: Opens RaidOrganizer, an interface that allow you to save/prepare your groups ( including signs ) and to change with only a button. Need a bit more work to be perfect.
+`/vro loatheb`: Takes players tagged as healers in your raid and create a heal rotation for Loatheb encounter.
+`/vro raidinfo`: Do as XRS does and show raid Health, Mana, and take player you tagged as healers mana to show healers mana.
