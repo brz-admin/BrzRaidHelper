@@ -1,6 +1,6 @@
 BRH = {};
 BRH.syncPrefix = "BRH_Sync"
-BRH.build = "700"
+BRH.build = "000"
 
 BRH.BS = AceLibrary("Babble-Spell-2.3")
 

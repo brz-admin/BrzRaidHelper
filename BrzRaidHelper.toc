@@ -1,6 +1,6 @@
 ## Interface: 11200
 ## Title: |cff64fc8aBrz|cffffffffraid|cffb0fc64Helper
-## Version: 220
+## Version: 250
 ## Notes: Multiple Useful Macros for Raids
 ## SavedVariablesPerCharacter: BRH_TrackedSpells, BRH_CDTrackerConfig, BRH_spellsToTrack, BRH_config, BRH_RaidOrganizer
 
