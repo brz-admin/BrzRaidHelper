@@ -592,4 +592,3 @@ end
 
 SLASH_BRH1 = "/BRH"
 SlashCmdList["BRH"] = BRHcmdHandle
-
