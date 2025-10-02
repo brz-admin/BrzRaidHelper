@@ -180,7 +180,7 @@ function plsInfu.infuIfCan(msg)
 		end
 	end
 
-	if pClass ~= "priest" then return end
+	if BRH.pClass ~= "priest" then return end
 
 	if (plsInfu.askedInfu ~= nil) then
 		local infuCD = util.getSpellCD(infu)
