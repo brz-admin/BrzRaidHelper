@@ -40,6 +40,7 @@ igniteTracker.main:SetHeight(15)
 igniteTracker.main:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_CREATURE_DAMAGE");
 igniteTracker.main:RegisterEvent("CHAT_MSG_SPELL_AURA_GONE_OTHER");
 igniteTracker.main:RegisterEvent("CHAT_MSG_SPELL_PARTY_DAMAGE");
+igniteTracker.main:RegisterEvent("CHAT_MSG_SPELL_FRIENDLYPLAYER_DAMAGE");
 igniteTracker.main:RegisterEvent("CHAT_MSG_SPELL_SELF_DAMAGE");
 igniteTracker.main:SetMovable(true);
 igniteTracker.main:EnableMouse(true);
@@ -238,10 +239,10 @@ igniteTracker.main:SetScript("OnEvent", function()
 			igniteTracker.frame.dmg:SetText("");
 			igniteTracker.frame.source:SetText("");
 		end
-	elseif (event == "CHAT_MSG_SPELL_PARTY_DAMAGE" or event == "CHAT_MSG_SPELL_SELF_DAMAGE") then
-        -- fired at spell casted by party member
+	elseif (event == "CHAT_MSG_SPELL_PARTY_DAMAGE" or event == "CHAT_MSG_SPELL_FRIENDLYPLAYER_DAMAGE" or event == "CHAT_MSG_SPELL_SELF_DAMAGE") then
+        -- fired at spell casted by party member or raid member
 		local target, damage, damageSchool, source, spellName, damageType, sourceClass;
-		if (event == "CHAT_MSG_SPELL_PARTY_DAMAGE") then
+		if (event == "CHAT_MSG_SPELL_PARTY_DAMAGE" or event == "CHAT_MSG_SPELL_FRIENDLYPLAYER_DAMAGE") then
 			target, damage, damageSchool, source, spellName, damageType = parser.partySpellDamage(arg1)
 			if (source ~= nil) then
 				TargetByName(source)
@@ -348,4 +349,5 @@ function igniteTracker.cmdHandle(msg)
 end
 
 SLASH_IGNITE1 = "/igniteTracker"
+
 SlashCmdList["IGNITE"] = igniteTracker.cmdHandle
